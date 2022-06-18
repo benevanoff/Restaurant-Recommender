@@ -12,5 +12,5 @@
 | Member1     |  yl96@illinois.edu     |
 | Member2     |   Zhenan Shao          |
 | Member2     |  zhenans2@illinois.edu |
-| Member3     |   FirstName LastName   |
-| Member3     |      Member4-Email     |
+| Member3     |   Yanzhen Shen         |
+| Member3     |  yanzhen4@illinois.edu |
