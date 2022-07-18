@@ -1,0 +1,41 @@
+<!-- some functions are common to all pages, such as the navigational bar-->
+
+<!doctype html>
+<html>
+    <head>
+        <style>
+        body {
+            font-size: 120%;
+        }
+        .alert {
+            padding: 20px;
+            margin: 5px;
+            color: #970020;
+            background-color: #ffd5de;
+        }
+        </style>
+
+        {% if title %}
+        <title>{{ title }} - Grp39</title>
+        {% else %}
+        <title>CS411 Proj Grp39</title>
+        {% endif %}
+    </head>
+    <body>
+        <nav>CS411 Proj:
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('search') }}">Search</a>
+        </nav>
+        <hr>
+
+        <!-- inheriting scripts insert below using name "content"-->
+        <div class="content">
+            {% for message in get_flashed_messages() %}
+                <!--in case we need to show any warnings-->
+                <div class="alert">{{ message }}</div>
+            {% endfor %}
+        {% block content %}{% endblock %}
+        </div>
+
+    </body>
+</html>
