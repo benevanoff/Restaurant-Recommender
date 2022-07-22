@@ -33,8 +33,10 @@ def create():
 
     test_query = 'DELETE FROM cs411_proj_data.Users'
     conn.execute(test_query)
-    query = 'INSERT INTO cs411_proj_data.Users (Username, Password, Realname) VALUES ("{}","{}","{}"); '.format(username, password, realname)
-    conn.execute(query)
+    insert_Customers = 'INSERT INTO cs411_proj_data.Customers (Username, Realname) VALUES ("{}","{}"); '.format(username,realname)
+    conn.execute(insert_Customers)
+    insert_Users = 'INSERT INTO cs411_proj_data.Users (Username, Password) VALUES ("{}","{}"); '.format(username,password)
+    conn.execute(insert_Users)
     conn.close()
     return render_template('create.html')
 
@@ -71,6 +73,24 @@ def search_handler():
 
 @app.route("/update")
 def update():
+    db = init_db()
+    conn = db.connect()
+
+    username_entered = "Will"
+    old_password_entered = "Yanzhen"
+    new_password_entered = "Shen"
+     
+    verify_query = 'SELECT U.password FROM cs411_proj_data.Users U WHERE U.Username = "{}"'.format(username_entered)
+    vertify_result = conn.execute(verify_query).fetchall()
+    if vertify_result[0][0] == old_password_entered:
+        print("password is correct for", username_entered)
+        update_query = 'UPDATE cs411_proj_data.Users U SET U.Password = "{}" WHERE U.Username = "{}"'.format(new_password_entered, username_entered)
+        conn.execute(update_query)
+    else:
+        print("password does not match for", username_entered)
+        
+    conn.close()
+
     return render_template('update.html')
 
 
