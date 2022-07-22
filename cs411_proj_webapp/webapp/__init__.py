@@ -22,13 +22,27 @@ def init_db():
         )
     return pool
 
+def fetch_bar() -> dict:
+    conn = db.connect()
+    query_results = conn.execute("Select * from cs411_proj_data.Bar;").fetchall()
+    conn.close()
+    bar_list = []
+    for result in query_results:
+        item = {
+            "id": result[0],
+            "res_name": result[1],
+            "price_level": result[2],
+            "address": result[5]
+        }
+        bar_list.append(item)
+    return bar_list
+
 app = Flask(__name__)
 app.config.from_object(Config)
 db = init_db()
 
-conn = db.connect()
-results = conn.execute("SELECT * FROM cs411_proj_data.Bar").fetchall()
-print([x for x in results])
-conn.close()
+#bar_list = fetch_bar()
+#print([x for x in bar_list])
+
 
 from webapp import routes

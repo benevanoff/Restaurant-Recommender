@@ -7,6 +7,7 @@ env_variables:
   MYSQL_PASSWORD: '1`*x|40x$x+L1KaB'
   MYSQL_DB: 'cs411_proj_data'
   MYSQL_HOST: '35.223.253.159'
+  MYSQL_QUERY: 'SELECT * FROM cs411_proj_data.Bar'
 
 handlers:
 - url: /script
