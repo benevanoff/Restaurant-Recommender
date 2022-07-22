@@ -1,6 +1,7 @@
 from flask import render_template, request, url_for, flash, redirect
-from webapp import app
-
+from webapp import app, db
+import sqlalchemy
+import json
 
 @app.route('/')
 @app.route('/index')
@@ -23,6 +24,31 @@ def create():
         else:
             return redirect(url_for('index'))
     return render_template('create.html')
+
+@app.route("/search_handler")
+def search_handler():
+    """grab places with names LIKE keyword"""
+    res = {}
+    conn = db.connect()
+    for key in request.args.keys():
+        if key == "bar":
+            query = sqlalchemy.text('SELECT * FROM Bar WHERE res_name LIKE :keyword')
+            bars_res = conn.execute(query, keyword='%'+request.args["bar"]+'%')
+            bars = bars_res.fetchall()
+            res["bars"] = json.dumps([dict(e) for e in bars])
+        if key == "restaurant":
+            query = sqlalchemy.text('SELECT * FROM Restaurant WHERE res_name LIKE :keyword')
+            restos_res = conn.execute(query, keyword='%'+request.args["restaurant"]+'%')
+            restaurants = restos_res.fetchall()
+            res["restaurant"] = json.dumps([dict(e) for e in restaurants])
+        if key == "cafe":
+            query = sqlalchemy.text('SELECT * FROM Cafe WHERE res_name LIKE :keyword')
+            cafes_res = conn.execute(query, keyword='%'+request.args["restaurant"]+'%')
+            cafes = cafes_res.fetchall()
+            res["cafe"] = json.dumps([dict(e) for e in cafes])
+        
+    conn.close()
+    return res
 
 
 @app.route("/search")
