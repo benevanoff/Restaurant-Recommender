@@ -26,9 +26,4 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db = init_db()
 
-conn = db.connect()
-results = conn.execute("SELECT * FROM cs411_proj_data.Bar").fetchall()
-print([x for x in results])
-conn.close()
-
 from webapp import routes
