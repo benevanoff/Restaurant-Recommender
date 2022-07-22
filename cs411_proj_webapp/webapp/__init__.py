@@ -41,8 +41,4 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db = init_db()
 
-#bar_list = fetch_bar()
-#print([x for x in bar_list])
-
-
 from webapp import routes

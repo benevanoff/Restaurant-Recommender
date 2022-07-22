@@ -23,14 +23,15 @@ def create():
         password = request.form['password']
         realname = request.form['realname']
       
-        if not username:
-            flash('Username is required!')
-        elif not password:
-            flash('Password is required!')
+        #if not username:
+        #    flash('Username is required!')
+        #elif not password:
+        #    flash('Password is required!')
+       # else:
+        #    return redirect(url_for('index'))
 
-    #test_query = 'DELETE FROM cs411_proj_data.Users'
-    #conn.execute(test_query)
-
+    test_query = 'DELETE FROM cs411_proj_data.Users'
+    conn.execute(test_query)
     query = 'INSERT INTO cs411_proj_data.Users (Username, Password, Realname) VALUES ("{}","{}","{}"); '.format(username, password, realname)
     conn.execute(query)
     conn.close()
