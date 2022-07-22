@@ -1,6 +1,73 @@
 {% extends "base.html" %}
 
 {% block content %}
-search
+<center>
+<h3>Search</h3>
+<div>
+  <input id="restaurants_check" type="checkbox"> <label>Restaurants</label>
+  <input id="cafes_check" type="checkbox"> <label>Cafes</label>
+  <input id="bars_check" type="checkbox"> <label>Bars</label>
+</div>
 
+<input type="text" id="keyword_field">
+
+<div>
+  <button id="submit_keyword">Search</button>
+  <button id="submit_suggest">Suggest</button>
+</div>
+
+<div id="results_div">
+
+</div>
+</center>
+<script>
+
+  /*
+   * The /search_handler endpoint expects some combination of the parameters "bar=keyword", "cafe=keyword", or "restaurant=keyword" so we need to prepare the data into ecoded url params
+   * @param (string) the keyword in the search bar to search for
+   * @param (string array) should contain some combination of strings "bar", "cafe", and "restaurant" for the keys used in the request
+   * @return the encoded string
+   */
+  function prepareSearchParams(keyword, keys) {
+    let encoded = "";
+    for (let i = 0; i < keys.length; i++) {
+      encoded += (keys[i] + "=" + keyword);
+      if (i != (keys.length-1)) encoded += "&";
+    }
+    return encodeURI(encoded);
+  }
+
+  function keywordSearch(keyword) {
+    let req = new XMLHttpRequest();
+    req.addEventListener("load", () => {
+      resp_all = JSON.parse(req.responseText); // returns an object with keys "bars", "restaurants", or "cafes" and a string encoding a list of objects
+      let results_div = document.getElementById("results_div");
+      results_div.innerHTML = ""; // clear list before populating with new results
+      Object.entries(resp_all).forEach(entry => {
+        let places = JSON.parse(entry[1]); // index 0 is key, index 1 is value
+        places.forEach(place => {
+          let p = document.createElement("p");
+		  p.textContent = place.res_name;
+		  results_div.appendChild(p);
+        });
+      });
+    });
+
+    let search_types = [];
+    if (document.getElementById("restaurants_check").checked) search_types.push("restaurant");
+    if (document.getElementById("cafes_check").checked) search_types.push("cafe");
+    if (document.getElementById("bars_check").checked) search_types.push("bar");
+
+    req.open("GET", "http://127.0.0.1:5000/search_handler?"+prepareSearchParams(keyword, search_types));
+    req.send();
+  }
+
+  let keyword_btn = document.getElementById("submit_keyword");
+
+  keyword_btn.addEventListener("click", () => {
+    let keyword = document.getElementById("keyword_field").value;
+    keywordSearch(keyword);
+  });
+
+</script>
 {% endblock %}
