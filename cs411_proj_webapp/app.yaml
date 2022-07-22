@@ -8,6 +8,7 @@ env_variables:
   MYSQL_DB: 'cs411_proj_data'
   MYSQL_HOST: '35.223.253.159'
   MYSQL_QUERY: 'SELECT * FROM cs411_proj_data.Bar'
+  MYSQL_NAME: 'cs411_proj_data'
 
 handlers:
 - url: /script

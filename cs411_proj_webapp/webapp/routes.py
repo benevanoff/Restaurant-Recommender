@@ -1,6 +1,8 @@
 from mimetypes import init
 from flask import render_template, request, url_for, flash, redirect
-from webapp import app, init_db
+from webapp import app, db
+import sqlalchemy
+import json
 
 @app.route('/')
 @app.route('/index')
@@ -11,7 +13,6 @@ def index():
 
 @app.route("/create", methods=('GET', 'POST'))
 def create():
-    db = init_db()
     conn = db.connect()
 
     username = ""
@@ -43,6 +44,30 @@ def search():
     """where the search bar is"""
     return render_template('search.html')
 
+@app.route("/search_handler")
+def search_handler():
+    """grab places with names LIKE keyword"""
+    res = {}
+    conn = db.connect()
+    for key in request.args.keys():
+        if key == "bar":
+            query = sqlalchemy.text('SELECT * FROM Bar WHERE res_name LIKE :keyword LIMIT 10')
+            bars_res = conn.execute(query, keyword='%'+request.args["bar"]+'%')
+            bars = bars_res.fetchall()
+            res["bars"] = json.dumps([dict(e) for e in bars])
+        if key == "restaurant":
+            query = sqlalchemy.text('SELECT * FROM Restaurant WHERE res_name LIKE :keyword LIMIT 10')
+            restos_res = conn.execute(query, keyword='%'+request.args["restaurant"]+'%')
+            restaurants = restos_res.fetchall()
+            res["restaurant"] = json.dumps([dict(e) for e in restaurants])
+        if key == "cafe":
+            query = sqlalchemy.text('SELECT * FROM Cafe WHERE res_name LIKE :keyword LIMIT 10')
+            cafes_res = conn.execute(query, keyword='%'+request.args["restaurant"]+'%')
+            cafes = cafes_res.fetchall()
+            res["cafe"] = json.dumps([dict(e) for e in cafes])
+
+    conn.close()
+    return res
 
 @app.route("/update")
 def update():
