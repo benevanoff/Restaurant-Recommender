@@ -121,9 +121,29 @@ def query1():
     return render_template('query1.html')
 
 
-@app.route("/query2")
-def query2():
-    return render_template('query2.html')
+@app.route("/suggest")
+def suggest():
+    conn = db.connect()
+    res = {}
+    for key in request.args.keys():
+        username = ""
+        print(request.args["bars"])
+        if key == "username": # username needs to be first parameter so it is recognized before making queries
+            username = request.args["username"]
+        if key == "restaurants" and request.args["restaurants"] == "true":
+            query = sqlalchemy.text('SELECT DISTINCT res_name, price_level, rating, num_ratings, address FROM Restaurant r JOIN ServeRestaurant s ON r.id = s.res_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            suggestions = conn.execute(query)
+            res["restaurants"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+        if key == "bars" and request.args["bars"] == "true":
+            query = sqlalchemy.text('SELECT DISTINCT res_name, price_level, rating, num_ratings, address FROM Bar r JOIN ServeBar s ON r.id = s.bar_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            suggestions = conn.execute(query)
+            res ["bars"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+        if key == "cafes" and request.args["cafes"] == "true":
+            query = sqlalchemy.text('SELECT DISTINCT res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            suggestions = conn.execute(query)
+            res ["cafes"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+    conn.close()
+    return res
 
 # # used to allow user logging out
 # # adapt the html to show this

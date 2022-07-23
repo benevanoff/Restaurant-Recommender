@@ -62,11 +62,42 @@
     req.send();
   }
 
+  function fetchSuggestion(username) {
+    let req = new XMLHttpRequest();
+    req.addEventListener("load", () => {
+      resp_all = JSON.parse(req.responseText); // returns an object with keys "bars", "restaurants", or "cafes" and a string encoding a list of objects
+      let results_div = document.getElementById("results_div");
+      results_div.innerHTML = ""; // clear list before populating with new results
+      Object.entries(resp_all).forEach(entry => {
+        let places = JSON.parse(entry[1]); // index 0 is key, index 1 is value
+        places.forEach(place => {
+          let p = document.createElement("p");
+		  p.textContent = place.res_name;
+		  results_div.appendChild(p);
+        });
+      });
+    });
+
+    let restaurants_checked = document.getElementById("restaurants_check").checked;
+    let bars_checked = document.getElementById("bars_check").checked;
+    let cafes_checked = document.getElementById("cafes_check").checked;
+
+    req.open("GET", "http://127.0.0.1:5000/suggest?username="+document.cookie+"&bars="+bars_checked+"&restaurants="+restaurants_checked+"&cafes="+cafes_checked);
+    req.send();
+  }
+
+  document.cookie = "oQjbVCHVUgiwowSubiWPWXYLxEGNccq"; // crude way to set cookies before login page is made
+
   let keyword_btn = document.getElementById("submit_keyword");
+  let suggest_btn = document.getElementById("submit_suggest");
 
   keyword_btn.addEventListener("click", () => {
     let keyword = document.getElementById("keyword_field").value;
     keywordSearch(keyword);
+  });
+
+  suggest_btn.addEventListener("click", () => {
+    fetchSuggestion(document.cookie);
   });
 
 </script>
