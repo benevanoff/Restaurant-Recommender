@@ -1,5 +1,5 @@
 from mimetypes import init
-from flask import render_template, request, url_for, flash, redirect
+from flask import render_template, request, url_for, flash, redirect, session
 from webapp import app, db
 import sqlalchemy
 import json
@@ -13,32 +13,39 @@ def index():
 
 @app.route("/create", methods=('GET', 'POST'))
 def create():
-    conn = db.connect()
-
-    username = ""
-    password = ""
-    realname = ""
-     
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         realname = request.form['realname']
-      
-        #if not username:
-        #    flash('Username is required!')
-        #elif not password:
-        #    flash('Password is required!')
-       # else:
-        #    return redirect(url_for('index'))
-
-    test_query = 'DELETE FROM cs411_proj_data.Users'
-    conn.execute(test_query)
-    insert_Customers = 'INSERT INTO cs411_proj_data.Customers (Username, Realname) VALUES ("{}","{}"); '.format(username,realname)
-    conn.execute(insert_Customers)
-    insert_Users = 'INSERT INTO cs411_proj_data.Users (Username, Password) VALUES ("{}","{}"); '.format(username,password)
-    conn.execute(insert_Users)
-    conn.close()
+        conn = db.connect()
+        insert_Customers = 'INSERT INTO Customer (username, real_name) VALUES ("{}","{}"); '.format(username,realname)
+        conn.execute(insert_Customers)
+        insert_Users = 'INSERT INTO Users (Username, Password) VALUES ("{}","{}"); '.format(username,password)
+        conn.execute(insert_Users)
+        conn.close()
+        
     return render_template('create.html')
+
+@app.route("/login", methods=('GET', 'POST'))
+def login():
+    for key in session:
+        if key == "username":
+            return redirect("/search") # redirect to main page if already logged in
+    if request.method == 'POST':
+        username = request.form['username']
+        pwd_input = request.form['password']
+        conn = db.connect()
+        pwd_query = 'SELECT Password FROM Users WHERE Username="{}"'.format(username) # passwords should be hashed but they're not for the demo
+        db_res = conn.execute(pwd_query)
+        conn.close()
+        pwd_res = json.dumps([dict(e) for e in db_res.fetchall()]) # format to grab by key easy
+        pwd = (json.loads(pwd_res[1:len(pwd_res)-1]))["Password"] # pwd_res is a list but only one object should be returned so we can strip off [] at beginning/end
+        print(pwd)
+        if pwd == pwd_input:
+            session["username"] = username
+            return redirect("/search")
+        # else tell template renderer to add invalid login message
+    return render_template('login.html')
 
 
 @app.route("/search")

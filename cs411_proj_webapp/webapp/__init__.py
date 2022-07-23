@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_session import Session
 from config import Config
 from yaml import load, Loader
 import sqlalchemy
@@ -24,6 +25,8 @@ def init_db():
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 db = init_db()
 
 
