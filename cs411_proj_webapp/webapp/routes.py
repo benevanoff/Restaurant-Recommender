@@ -91,30 +91,39 @@ def update():
             flash("Filling out all fields!")
 
         update_stat = db_helper.update_password(username, old_password, new_password)
-        return redirect(url_for('index'))
+        if update_stat == 0:
+            # successful update
+            return redirect(url_for('index'))
+
+        if update_stat == 1:
+            flash("User not found")
+        else:
+            flash("Incorrect password")
 
     return render_template('update.html')
 
 
-@app.route("/delete")
+@app.route("/delete", methods=('GET', 'POST'))
 def delete():
-    db = init_db()
-    conn = db.connect()
 
-    username_entered = "Will"
-    old_password_entered = "Yanzhen"
-    new_password_entered = "Shen"
-     
-    verify_query = 'SELECT U.password FROM cs411_proj_data.Users U WHERE U.Username = "{}"'.format(username_entered)
-    vertify_result = conn.execute(verify_query).fetchall()
-    if vertify_result[0][0] == old_password_entered:
-        print("password is correct for", username_entered)
-        update_query = 'DELETE FROM cs411_proj_data.Users U WHERE U.Username = "{}"'.format(new_password_entered, username_entered)
-        conn.execute(update_query)
-    else:
-        print("password does not match for", username_entered)
-        
-    conn.close()
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if "" in [username, password]:
+            flash("Filling out all fields!")
+
+        delete_stat = db_helper.delete_user(username, password)
+        if delete_stat == 0:
+            # successful delete
+            return redirect(url_for("index"))
+
+        if delete_stat == 1:
+            flash("User not found")
+        else:
+            flash("Incorrect password")
+        return render_template('delete.html')
+
     return render_template('delete.html')
 
 
@@ -147,24 +156,5 @@ def suggest():
     conn.close()
     return res
 
-# # used to allow user logging out
-# # adapt the html to show this
-# @app.route("/logout")
-# def logout():
-#     logout_user()
-#     return redirect(url_for("index"))
-#
-# @app.route("/register", methods=['GET', 'POST'])
-# def register():
-#     if current_user.is_authenticated:
-#         return redirect(url_for("index"))
-#
-#     form = RegistrationForm()
-#     if form.validate_on_submit():
-#         user = User(username=form.username.data, email=form.email.data)
-#         user.set_password(form.password.data)
-#         db.session.add(user)
-#         db.session.commit()
-#         flash("Congratulations, you are now a registered user!")
-#         return redirect(url_for("login"))
-#     return render_template("register.html", title="Register", form=form)
+
+
