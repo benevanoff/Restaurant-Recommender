@@ -4,6 +4,8 @@ from webapp import app, db
 import sqlalchemy
 import json
 
+from webapp import database as db_helper
+
 @app.route('/')
 @app.route('/index')
 def index():
@@ -78,25 +80,18 @@ def search_handler():
     conn.close()
     return res
 
-@app.route("/update")
+@app.route("/update", methods=('GET', 'POST'))
 def update():
-    db = init_db()
-    conn = db.connect()
+    if request.method == 'POST':
+        username = request.form['username']
+        old_password = request.form['oldPassword']
+        new_password = request.form['newPassword']
 
-    username_entered = "Will"
-    old_password_entered = "Yanzhen"
-    new_password_entered = "Shen"
-     
-    verify_query = 'SELECT U.password FROM cs411_proj_data.Users U WHERE U.Username = "{}"'.format(username_entered)
-    vertify_result = conn.execute(verify_query).fetchall()
-    if vertify_result[0][0] == old_password_entered:
-        print("password is correct for", username_entered)
-        update_query = 'UPDATE cs411_proj_data.Users U SET U.Password = "{}" WHERE U.Username = "{}"'.format(new_password_entered, username_entered)
-        conn.execute(update_query)
-    else:
-        print("password does not match for", username_entered)
-        
-    conn.close()
+        if "" in [username, old_password, new_password]:
+            flash("Filling out all fields!")
+
+        update_stat = db_helper.update_password(username, old_password, new_password)
+        return redirect(url_for('index'))
 
     return render_template('update.html')
 

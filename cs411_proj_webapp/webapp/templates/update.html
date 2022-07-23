@@ -1,6 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-update
+
+<h1>{% block title %} Update Password {% endblock %}</h1>
+<form method="post">
+    <label for="username">Username</label>
+    <br>
+    <input type="text" name="username"
+           placeholder="Username"
+           value="{{ request.form['username'] }}"></input>
+    <br>
+
+    <label for="oldPassword">Old Password</label>
+    <br>
+    <textarea name="oldPassword"
+              placeholder="my_old_password"
+              >{{ request.form['oldPassword'] }}</textarea>
+    <br>
+
+    <label for="newPassword">New Password</label>
+    <br>
+    <textarea name="newPassword"
+              placeholder="my_new_password"
+              >{{ request.form['newPassword'] }}</textarea>
+    <br>
+
+    <button type="submit">Submit</button>
+</form>
 
 {% endblock %}
