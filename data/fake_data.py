@@ -1,5 +1,7 @@
 import random
 import string
+import sys
+
 import numpy as np
 import pandas as pd
 
@@ -98,9 +100,22 @@ def split_geo():
         df.to_csv(f"upload/results_{type_}.csv")
 
 
+def generate_fake_password(cus_df):
+    random.seed(411)
+    password = []
+    for _ in range(len(cus_df.index)):
+        password.append(''.join(random.choice(string.ascii_letters)
+                               for _ in range(random.choice(np.arange(1, 14)))))
+
+    df = pd.DataFrame(password, columns=["password"])
+    df = df.join(cus_df["user_name"])
+    return df
+
 def main():
     cus_df = gen_customer()
     cus_df.to_csv("./customers.csv")
+    password_df = generate_fake_password(cus_df)
+    password_df.to_csv("./credential.csv")
     food_df = gen_food()
     food_df.to_csv("./food.csv")
     fav_df = gen_favorites(cus_df, food_df)
