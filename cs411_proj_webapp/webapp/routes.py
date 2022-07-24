@@ -80,6 +80,33 @@ def search_handler():
     conn.close()
     return res
 
+
+@app.route("/search_validation", methods=('GET', 'post'))
+def search_validation():
+    """
+    This search bar can be used to search for a certain records in a certain relation
+    this can be used to show the results of our operation
+    e.g.: first search to show the existence of a user "john", then perform delete, then search again
+    to show no such "john exists anymore".
+    """
+    table_info = db_helper.get_db_info()
+    if request.method == "POST":
+        table = request.form['table']
+        column = request.form['column']
+        tuple_key = request.form['tupleKey']
+
+        if table not in table_info or column not in table_info[table]:
+            flash("Use a valid table-column pair")
+            return render_template('search_validation.html', all_tables=table_info)
+
+        results = db_helper.search_table_tuple(table, column, tuple_key)
+        if len(results) == 0:
+            flash("No records found")
+        return render_template('search_validation.html', all_tables=table_info, results=results)
+
+    return render_template('search_validation.html', all_tables=table_info)
+
+
 @app.route("/update", methods=('GET', 'POST'))
 def update():
     if request.method == 'POST':
