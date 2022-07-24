@@ -22,7 +22,7 @@ def create():
         conn = db.connect()
         insert_Customers = 'INSERT INTO Customer (username, real_name) VALUES ("{}","{}"); '.format(username,realname)
         conn.execute(insert_Customers)
-        insert_Users = 'INSERT INTO Users (Username, Password) VALUES ("{}","{}"); '.format(username,password)
+        insert_Users = 'INSERT INTO Credential (Username, Password) VALUES ("{}","{}"); '.format(username,password)
         conn.execute(insert_Users)
         conn.close()
         
@@ -37,7 +37,7 @@ def login():
         username = request.form['username']
         pwd_input = request.form['password']
         conn = db.connect()
-        pwd_query = 'SELECT Password FROM Users WHERE Username="{}"'.format(username) # passwords should be hashed but they're not for the demo
+        pwd_query = 'SELECT Password FROM Credential WHERE Username="{}"'.format(username) # passwords should be hashed but they're not for the demo
         db_res = conn.execute(pwd_query)
         conn.close()
         pwd_res = json.dumps([dict(e) for e in db_res.fetchall()]) # format to grab by key easy
