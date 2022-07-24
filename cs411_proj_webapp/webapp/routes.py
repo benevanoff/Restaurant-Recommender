@@ -184,4 +184,26 @@ def suggest():
     return res
 
 
+@app.route("/query2", methods = ('GET','POST'))
+def query2():
+    if request.method == 'POST':
+        conn = db.connect()
+        fields = "username, COUNT(*) AS num_order_brave "
+        table1 = "Customer C NATURAL JOIN OrderRestaurant O "
+        table2 = "Customer C NATURAL JOIN OrderCafe O "
+        subquery = "SELECT food_id FROM Customer C1 NATURAL JOIN Favorites WHERE C.username != C1.username"
+        query_search = (f"(SELECT {fields}"
+                        f"FROM {table1}"
+                        f"WHERE O.food_id IN ({subquery}) "
+                        "GROUP BY username) UNION "
+                        f"(SELECT {fields}"
+                        f"FROM {table2}"
+                        f"WHERE O.food_id IN ({subquery}) "
+                        "GROUP BY username) "
+                        "ORDER BY num_order_brave DESC "
+                        "LIMIT 15;")
+        results = conn.execute(query_search).fetchall()
+        return render_template('query2.html',results=results)
+    return render_template('query2.html')
+
 
