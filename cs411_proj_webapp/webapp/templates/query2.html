@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-query2
+
+<form method="POST">
+    <button type="submit">Generate Users Review</button>
+</form>
+
+{% for item in results %}
+<ul>
+    <li> {{item}} </li>
+</ul>
+{% endfor %}
 
 {% endblock %}
