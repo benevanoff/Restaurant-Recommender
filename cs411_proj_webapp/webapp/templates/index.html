@@ -2,10 +2,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
+    <h1>CS411 Project Grp39 {{ title }}</h1>
     <h2> CRUD + Search operations </h2>
 
-    <ol>
+    <ol class="index_ops">
         <li><a href="{{ url_for('search') }}">Search the database using a keyword search</a></li>
         <li><a href="{{ url_for('create') }}">Insert new records</a></li>
         <li><a href="{{ url_for('update') }}">Update records on the database</a></li>
