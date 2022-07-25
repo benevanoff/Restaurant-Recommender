@@ -2,24 +2,26 @@
 
 {% block content %}
 
-<h1>{% block title %} Delete User {% endblock %}</h1>
-<form method="post">
-    <label for="username">Username</label>
-    <br>
-    <input type="text" name="username"
-           placeholder="Username"
-           value="{{ request.form['username'] }}"></input>
-    <br>
+    <h1>{% block title %} Delete User {% endblock %}</h1>
+    <div class="form_area">
+        <form method="post">
+            <label for="username">Username</label>
+            <br>
+            <input type="text" name="username"
+                   placeholder="my_username"
+                   value="{{ request.form['username'] }}"></input>
+            <br>
 
-    <label for="password">Password</label>
-    <br>
-    <textarea name="password"
-              placeholder="my_password"
-              >{{ request.form['password'] }}</textarea>
-    <br>
+            <label for="password">Password</label>
+            <br>
+            <input type="text" name="password"
+                   placeholder="my_password"
+                   value="{{ request.form['password'] }}"></input>
+            <br>
 
-    <button type="submit">Submit</button>
-</form>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
 
 
 {% endblock %}

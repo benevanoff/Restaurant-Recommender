@@ -1,0 +1,98 @@
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-size: 16px;
+    font-family: sans-serif;
+    line-height: 1.80857;
+    font-weight: normal;
+    overflow-x: auto;
+}
+
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    letter-spacing: 0;
+    font-weight: normal;
+    position: relative;
+    padding: 20px 0 0 40px;
+    line-height: normal;
+    color: #111111;
+    margin: 0
+}
+
+h1 {
+    font-size: 28px
+}
+
+h2 {
+    font-size: 26px
+}
+
+h1 + h2{
+    padding: 5px 10px 10px 40px;
+    font-size: 20px;
+    color: dimgrey;
+}
+
+h3 {
+    font-size: 24px
+}
+
+h4 {
+    font-size: 20px
+}
+
+h5,h6 {
+    font-size: 16px
+}
+
+form {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+button, form button[type=submit] {
+    background-color: #002EA6;
+    font-size: 18px;
+    border: none;
+    color: #FFE78F;
+    padding: 10px 20px;
+    text-decoration: none;
+    margin: 10px 10px 10px 10px;
+    cursor: pointer;
+    border-radius:5px;
+}
+button:hover, form button[type=submit]:hover{
+    background-color: #0043f3;
+}
+form label {
+    text-align: center;
+    font-size: 18px;
+    padding: 15px 0 0 0;
+}
+
+form input {
+    width: 200%;
+    padding:8px;
+}
+.center-block {
+  display: block;
+  margin: auto;
+}
+
+p {
+    padding: 40px 0 0 20px;
+    font-size: 18px;
+}

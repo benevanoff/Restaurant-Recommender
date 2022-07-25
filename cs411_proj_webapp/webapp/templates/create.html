@@ -2,31 +2,31 @@
 
 {% block content %}
 
-<h1>{% block title %} Sign up a user {% endblock %}</h1>
-<form method="post">
-    <label for="username">Username</label>
-    <br>
-    <input type="text" name="username"
-           placeholder="Username"
-           value="{{ request.form['username'] }}"></input>
-    <br>
+    <h1>{% block title %} Sign up a user {% endblock %}</h1>
 
-    <label for="password">Password</label>
-    <br>
-    <textarea name="password"
-              placeholder="Password"
-              >{{ request.form['password'] }}</textarea>
-    <br>
+    <div class="form_area">
+        <form method="post">
+            <label for="username">Username</label>
+            <br>
+            <input type="text" name="username"
+                   placeholder="my_username"
+                   value="{{ request.form['username'] }}"></input>
+            <br>
+            <label for="password">Password</label>
+            <br>
+            <input type="text" name="password"
+                   placeholder="my_password"
+                   value="{{ request.form['password'] }}"></input>
+            <br>
+            <label for="realname">Realname</label>
+            <br>
+            <input type="text" name="realname"
+                   placeholder="my_realname"
+                   value="{{ request.form['realname'] }}"></input>
+            <br>
 
-    <label for="realname">Realname</label>
-    <br>
-    <textarea name="realname"
-              placeholder="Realname"
-              >{{ request.form['realname'] }}</textarea>
-    <br>
-
-    <button type="submit">Submit</button>
-</form>
-
+            <button type="submit">Submit</button>
+        </form>
+    </div>
 
 {% endblock %}

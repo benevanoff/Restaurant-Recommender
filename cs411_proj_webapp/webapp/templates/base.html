@@ -3,17 +3,13 @@
 <!doctype html>
 <html>
     <head>
-        <style>
-        body {
-            font-size: 120%;
-        }
-        .alert {
-            padding: 20px;
-            margin: 5px;
-            color: #970020;
-            background-color: #ffd5de;
-        }
-        </style>
+
+        <!-- bootstrap -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <!-- basic custom style css -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+        <!-- special classes custom style css -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/specialClass.css') }}">
 
         {% if title %}
         <title>{{ title }} - Grp39</title>
@@ -22,11 +18,18 @@
         {% endif %}
     </head>
     <body>
-        <nav>CS411 Proj:
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('search_validation') }}">Search</a>
+        <nav class="navbar navbar_custom">
+{#            <span>CS411 Project midterm demo:</span>#}
+            <ul>
+                <li class="nav-item">
+                    <a href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('search_validation') }}">Search database</a>
+                </li>
+
+            </ul>
         </nav>
-        <hr>
 
         <!-- inheriting scripts insert below using name "content"-->
         <div class="content">
