@@ -1,4 +1,5 @@
 from webapp import db
+import json
 
 
 def _verify_user(username: str, password: str, conn) -> int:
@@ -89,3 +90,29 @@ def search_table_tuple(table: str, column: str, tuple_key: str) -> []:
     query_search = f"SELECT * FROM {table} WHERE {column} = \'{tuple_key}\'"
     results = conn.execute(query_search).fetchall()
     return results
+
+def fetch_place_details(place_type, place_id):
+    menu_query = ''
+    place_query = ''
+    if place_type == "bar":
+        menu_query = f'SELECT food_id, dish_name FROM ServeBar sb join Food f on sb.food_id=f.id where bar_id={place_id}'
+        place_query = f'SELECT res_name, address FROM Bar WHERE id={place_id}'
+    if place_type == "cafe":
+        menu_query = f'SELECT food_id, dish_name FROM ServeCafe sb join Food f on sb.food_id=f.id where cafe_id={place_id}'
+        place_query = f'SELECT * FROM Cafe WHERE id={place_id}'
+    if place_type == "restaurant":
+        menu_query = f'SELECT food_id, dish_name FROM ServeRestaurant sr join Food f on sr.food_id=f.id where res_id={place_id}'
+        place_query = f'SELECT * FROM Restaurant WHERE id={place_id}'
+
+    conn = db.connect()
+    menu_query_res = conn.execute(menu_query)
+    menu = json.dumps([dict(e) for e in menu_query_res.fetchall()])
+
+    place_query_res = conn.execute(place_query)
+    place_res = json.dumps([dict(e) for e in place_query_res.fetchall()])
+            
+    place_decoded = (json.loads(place_res[1:len(place_res)-1])) # result is a list string but only one object should be returned so we can strip off [] at beginning/end
+    place_name = place_decoded["res_name"]
+    place_address = place_decoded["address"]
+
+    return {"place_name" : place_name, "place_address": place_address, "menu": menu}

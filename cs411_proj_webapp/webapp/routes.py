@@ -41,7 +41,7 @@ def login():
         db_res = conn.execute(pwd_query)
         conn.close()
         pwd_res = json.dumps([dict(e) for e in db_res.fetchall()]) # format to grab by key easy
-        pwd = (json.loads(pwd_res[1:len(pwd_res)-1]))["Password"] # pwd_res is a list but only one object should be returned so we can strip off [] at beginning/end
+        pwd = (json.loads(pwd_res[1:len(pwd_res)-1]))["Password"] # pwd_res is a list string but only one object should be returned so we can strip off [] at beginning/end
         print(pwd)
         if pwd == pwd_input:
             session["username"] = username
@@ -53,7 +53,7 @@ def login():
 @app.route("/search")
 def search():
     """where the search bar is"""
-    return render_template('search.html')
+    return render_template('search.html', username=session["username"])
 
 @app.route("/search_handler")
 def search_handler():
@@ -159,7 +159,7 @@ def query1():
     return render_template('query1.html')
 
 
-@app.route("/suggest")
+@app.route("/suggest_handler")
 def suggest():
     conn = db.connect()
     res = {}
@@ -169,15 +169,16 @@ def suggest():
         if key == "username": # username needs to be first parameter so it is recognized before making queries
             username = request.args["username"]
         if key == "restaurants" and request.args["restaurants"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT res_name, price_level, rating, num_ratings, address FROM Restaurant r JOIN ServeRestaurant s ON r.id = s.res_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            query = sqlalchemy.text('SELECT DISTINCT res_id, res_name, price_level, rating, num_ratings, address FROM Restaurant r JOIN ServeRestaurant s ON r.id = s.res_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
+            #print(suggestions.fetchall())
             res["restaurants"] = json.dumps([dict(e) for e in suggestions.fetchall()])
         if key == "bars" and request.args["bars"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT res_name, price_level, rating, num_ratings, address FROM Bar r JOIN ServeBar s ON r.id = s.bar_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            query = sqlalchemy.text('SELECT DISTINCT bar_id, res_name, price_level, rating, num_ratings, address FROM Bar r JOIN ServeBar s ON r.id = s.bar_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
             res ["bars"] = json.dumps([dict(e) for e in suggestions.fetchall()])
         if key == "cafes" and request.args["cafes"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            query = sqlalchemy.text('SELECT DISTINCT cafe_id, res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
             res ["cafes"] = json.dumps([dict(e) for e in suggestions.fetchall()])
     conn.close()
@@ -206,4 +207,45 @@ def query2():
         return render_template('query2.html',results=results)
     return render_template('query2.html')
 
+@app.route("/place_details")
+def place_details():
+    place_name = ""
+    place_address = ""
+    place_type = ""
+    place_id = 0
+    details = {}
+    for key in request.args.keys():
+        if key == "restaurant":
+            place_type = "restaurant"
+            place_id = request.args["restaurant"]
+            details = db_helper.fetch_place_details(place_type, place_id)
+        if key == "bar":
+            place_type = "bar"
+            place_id = request.args["bar"]
+            details = db_helper.fetch_place_details(place_type, place_id)
+        if key == "cafe":
+            place_type = "cafe"
+            place_id = request.args["cafe"]
+            details = db_helper.fetch_place_details(place_type, place_id)
+    place_name = details["place_name"]
+    place_address = details["place_address"]
+    menu = details["menu"]
+    p = (json.loads(menu))
+    print(place_name)
+    return render_template('place_details.html', p_id=place_id, p_type=place_type, name=place_name, address=place_address, menu=p) # only one place and menu will be rendered per page
 
+@app.route("/food_history_insert", methods=('GET','POST'))
+def food_history_insert():
+    if "username" not in session or "place_type" not in request.form or "food_id" not in request.form or "place_id" not in request.form:
+        return {"ab":"cd"}
+    if request.form["place_type"] == "bar":
+        conn = db.connect()
+        # triggers BarOrderTrig: CREATE TRIGGER BarOrderTrig BEFORE INSERT ON OrderBar FOR EACH ROW BEGIN IF new.id IS NULL THEN SET new.id = (SELECT COUNT(*) FROM OrderBar) + 100; END IF; END;
+        conn.execute(f'INSERT INTO OrderBar (username, food_id, bar_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})') # maybe use trigger to set order id?
+        conn.close()
+    if request.form["place_type"] == "cafe":
+        conn = db.connect()
+        conn.execute(f'INSERT INTO OrderCafe (username, food_id, cafe_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})') # maybe use trigger to set order id?
+        conn.close()
+        
+    return {"status" : 200}
