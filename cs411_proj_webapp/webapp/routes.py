@@ -230,9 +230,7 @@ def place_details():
     place_name = details["place_name"]
     place_address = details["place_address"]
     menu = details["menu"]
-    p = (json.loads(menu))
-    print(place_name)
-    return render_template('place_details.html', p_id=place_id, p_type=place_type, name=place_name, address=place_address, menu=p) # only one place and menu will be rendered per page
+    return render_template('place_details.html', p_id=place_id, p_type=place_type, name=place_name, address=place_address, menu=(json.loads(menu))) # only one place and menu will be rendered per page
 
 @app.route("/food_history_insert", methods=('GET','POST'))
 def food_history_insert():
@@ -249,3 +247,27 @@ def food_history_insert():
         conn.close()
         
     return {"status" : 200}
+
+@app.route("/history")
+def history():
+    if "username" not in session:
+        flash("not logged in")
+        return {"status": 200}
+    conn = db.connect()
+    resto_res = conn.execute(f'SELECT dish_name, res_id FROM OrderRestaurant o JOIN Food f ON o.food_id=f.id WHERE username="{session["username"]}"').fetchall()
+    bar_res = conn.execute(f'SELECT dish_name, bar_id FROM OrderBar o JOIN Food f ON o.food_id=f.id WHERE username="{session["username"]}"').fetchall()
+    cafe_res = conn.execute(f'SELECT dish_name, cafe_id FROM OrderCafe o JOIN Food f ON o.food_id=f.id WHERE username="{session["username"]}"').fetchall()
+
+    hist = []
+    for x in bar_res:
+        hist.append({"food_id" : x[0], "place_id" : x[1]})
+    for x in resto_res:
+        hist.append({"food_id" : x[0], "place_id" : x[1]})
+    for x in cafe_res:
+        hist.append({"food_id" : x[0], "place_id" : x[1]})
+        
+    #print(hist) bar
+    return render_template('history.html', histories=hist)
+    
+    
+    
