@@ -231,15 +231,18 @@ def place_details():
 @app.route("/food_history_insert", methods=('GET','POST'))
 def food_history_insert():
     if "username" not in session or "place_type" not in request.form or "food_id" not in request.form or "place_id" not in request.form:
-        return {"ab":"cd"}
+        return {"status": 500}
     if request.form["place_type"] == "bar":
         conn = db.connect()
-        # triggers BarOrderTrig: CREATE TRIGGER BarOrderTrig BEFORE INSERT ON OrderBar FOR EACH ROW BEGIN IF new.id IS NULL THEN SET new.id = (SELECT COUNT(*) FROM OrderBar) + 100; END IF; END;
-        conn.execute(f'INSERT INTO OrderBar (username, food_id, bar_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})') # maybe use trigger to set order id?
+        conn.execute(f'INSERT INTO OrderBar (username, food_id, bar_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})')
         conn.close()
     if request.form["place_type"] == "cafe":
         conn = db.connect()
-        conn.execute(f'INSERT INTO OrderCafe (username, food_id, cafe_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})') # maybe use trigger to set order id?
+        conn.execute(f'INSERT INTO OrderCafe (username, food_id, cafe_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})')
+        conn.close()
+    if request.form["place_type"] == "restaurant":
+        conn = db.connect()
+        conn.execute(f'INSERT INTO OrderCafe (username, food_id, res_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})')
         conn.close()
         
     return {"status" : 200}
@@ -252,7 +255,8 @@ def history():
     resto_res = conn.execute(f'SELECT dish_name, res_id FROM OrderRestaurant o JOIN Food f ON o.food_id=f.id WHERE username="{session["username"]}"').fetchall()
     bar_res = conn.execute(f'SELECT dish_name, bar_id FROM OrderBar o JOIN Food f ON o.food_id=f.id WHERE username="{session["username"]}"').fetchall()
     cafe_res = conn.execute(f'SELECT dish_name, cafe_id FROM OrderCafe o JOIN Food f ON o.food_id=f.id WHERE username="{session["username"]}"').fetchall()
-
+    conn.close()
+    
     hist = []
     for x in bar_res:
         hist.append({"food_id" : x[0], "place_id" : x[1]})
@@ -282,3 +286,20 @@ def logout():
     if "username" in session:
         session.pop("username")
     return redirect("/login")
+
+@app.route("/food_search_handler")
+def food_search_handler():
+    if "keyword" not in request.args:
+        return {"status": 500}
+    conn = db.connect()
+    query = sqlalchemy.text('SELECT id, dish_name FROM Food WHERE dish_name LIKE :keyword LIMIT 10')
+    query_res = conn.execute(query, keyword='%'+request.args["keyword"]+'%').fetchall()
+    conn.close()
+    return json.dumps([dict(e) for e in query_res])
+
+@app.route("/insert_favorite", methods=('GET','POST'))
+def insert_favorites():
+    if "username" not in session or "food_id" not in request.form:
+        return {"status": 500}
+    db.connect().execute(f'INSERT INTO Favorites (username, food_id) VALUES ("{session["username"]}", "{request.form["food_id"]}")')
+    return {"status": 200}
