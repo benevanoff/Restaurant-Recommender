@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <button id="options_btn">Options</button>
+    <div id="options_tab" style="margin:5px;border:1px solid #fea50a;position:absolute;width:20%;height:50%;visibility:hidden;">
+      <center>      
+        <p>{{username}}</p>
+        <button id="preferences_btn">Preferences</button>
+        <button id="history_btn">History</button>
+      </center>
+      <center>
+        <button id="logout_btn">Logout</button>
+      </center>
+    </div>
     <div class="form_area">
         <h2 style="padding: 20px 0 20px 0">Search</h2>
         <div class = "checkbox_area">
@@ -44,11 +55,15 @@
       let results_div = document.getElementById("results_div");
       results_div.innerHTML = ""; // clear list before populating with new results
       Object.entries(resp_all).forEach(entry => {
+	    let place_type = entry[0];
         let places = JSON.parse(entry[1]); // index 0 is key, index 1 is value
         places.forEach(place => {
-          let p = document.createElement("p");
-		  p.textContent = place.res_name;
-		  results_div.appendChild(p);
+          let b = document.createElement("button");
+		  b.innerHTML = "<button>"+place.res_name+"</button>";
+	      b.addEventListener("click", () => {
+            location.href = '/place_details?'+place_type+'='+place.id;
+          });
+		  results_div.appendChild(b);
         });
       });
     });
@@ -62,7 +77,8 @@
     req.send();
   }
 
-  function fetchSuggestion(username) {
+
+  function fetchSuggestion() {
     let req = new XMLHttpRequest();
     req.addEventListener("load", () => {
       resp_all = JSON.parse(req.responseText); // returns an object with keys "bars", "restaurants", or "cafes" and a string encoding a list of objects
@@ -71,9 +87,23 @@
       Object.entries(resp_all).forEach(entry => {
         let places = JSON.parse(entry[1]); // index 0 is key, index 1 is value
         places.forEach(place => {
-          let p = document.createElement("p");
-		  p.textContent = place.res_name;
-		  results_div.appendChild(p);
+          let place_type = "restaurant";
+          let place_id = place["res_id"];
+          if (place["bar_id"]) {
+			place_type = "bar";
+            place_id = place["bar_id"];
+          }
+          if (place["cafe_id"]) {
+			place_type = "cafe";
+			place_id = place["cafe_id"];
+		  }
+          let b = document.createElement("button");
+          
+		  b.innerHTML = '<button>'+place.res_name+'</button>';
+          b.addEventListener("click", () => {
+            location.href = '/place_details?'+place_type+'='+place_id;
+          });
+		  results_div.appendChild(b);
         });
       });
     });
@@ -82,11 +112,29 @@
     let bars_checked = document.getElementById("bars_check").checked;
     let cafes_checked = document.getElementById("cafes_check").checked;
 
-    req.open("GET", "http://127.0.0.1:5000/suggest?username="+document.cookie+"&bars="+bars_checked+"&restaurants="+restaurants_checked+"&cafes="+cafes_checked);
+    req.open("GET", "http://127.0.0.1:5000/suggest_handler?bars="+bars_checked+"&restaurants="+restaurants_checked+"&cafes="+cafes_checked);
     req.send();
   }
 
-  document.cookie = "oQjbVCHVUgiwowSubiWPWXYLxEGNccq"; // crude way to set cookies before login page is made
+  // button listeners
+  let options_btn = document.getElementById("options_btn");
+  let history_btn = document.getElementById("history_btn");
+  let preferences_btn = document.getElementById("preferences_btn");
+
+  options_btn.addEventListener("click", () => {
+    document.getElementById("options_tab").style.visibility = document.getElementById("options_tab").style.visibility == "visible" ? "hidden" : "visible";
+  });
+
+  preferences_btn = document.getElementById("preferences_btn");
+  preferences_btn.addEventListener("click", () => {
+    location.href = '/preferences';
+  });
+
+  document.getElementById("logout_btn").addEventListener("click", () => location.href = '/logout')
+
+  history_btn.addEventListener("click", () => {
+    location.href = '/history';
+  });
 
   let keyword_btn = document.getElementById("submit_keyword");
   let suggest_btn = document.getElementById("submit_suggest");
@@ -97,7 +145,7 @@
   });
 
   suggest_btn.addEventListener("click", () => {
-    fetchSuggestion(document.cookie);
+    fetchSuggestion();
   });
 
 </script>

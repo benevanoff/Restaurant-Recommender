@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <center>
+    <h3>{{name}}</h3>
+    <p style="padding:10px 0 0 10px">{{address}}</p>
+    <h4 style="padding:10px 0 0 10px">Menu</h4>
+    <div id="menu_div">
+      
+    </div>
+  </center>
+  <script>
+    let d;
+    let p;
+    let b;
+	{% for item in menu %}
+      d = document.createElement("div");
+      d.style = "display:flex;align-items:center;justify-content: center;";
+      p = document.createElement("p");
+      p.innerHTML = "<p>{{item.dish_name}}</p>"
+      b = document.createElement("button");
+      b.addEventListener("click", function () {
+        let req = new XMLHttpRequest();
+        req.open("POST", "/food_history_insert");
+        req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        req.send("place_type={{p_type}}&food_id={{item.food_id}}&place_id={{p_id}}");
+      });
+      d.append(p);
+      d.append(b);
+      document.getElementById("menu_div").append(d);
+	{% endfor %}
+  </script>
+{% endblock %}

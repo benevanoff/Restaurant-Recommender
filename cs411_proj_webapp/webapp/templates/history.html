@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<center>
+	<h2>Order History</h2>
+	{% for item in histories %}
+		<p>{{item.food_id}}</p>
+	{% endfor %}
+</center>
+
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<center>
+	<h2>Search Food</h2>
+	<input class="main_search" type="text" id="keyword_field">
+	<button id="submit-search">Search</button>
+
+	<div id="results-div">
+
+	</div>
+</center>
+
+<script>
+	function loadSearchResults() {
+	  let results_div = document.getElementById("results-div");
+	  let req = new XMLHttpRequest();
+      req.addEventListener("load", () => {
+	    let dish_resp = JSON.parse(req.responseText);
+	    dish_resp.forEach(dish => {
+	       let b = document.createElement("button");
+	       b.innerHTML = '<button>'+dish.dish_name+'</button>';
+	       b.addEventListener("click", () => {
+	         let post = new XMLHttpRequest();
+	         post.open("POST", "/insert_favorite");
+	         post.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	         post.send("food_id="+dish.id);
+	       });
+	       results_div.appendChild(b);
+	    });
+	  });
+	  req.open("GET", "http://127.0.0.1:5000/food_search_handler?keyword="+document.getElementById("keyword_field").value);
+      req.send();
+	}
+	document.getElementById("submit-search").addEventListener("click", loadSearchResults);
+</script>
+
+{% endblock %}
