@@ -19,7 +19,6 @@
       req.addEventListener("load", () => {
 	    let dish_resp = JSON.parse(req.responseText);
 	    dish_resp.forEach(dish => {
-	       console.log(dish.dish_name);
 	       let b = document.createElement("button");
 	       b.innerHTML = '<button>'+dish.dish_name+'</button>';
 	       b.addEventListener("click", () => {

@@ -55,11 +55,15 @@
       let results_div = document.getElementById("results_div");
       results_div.innerHTML = ""; // clear list before populating with new results
       Object.entries(resp_all).forEach(entry => {
+	    let place_type = entry[0];
         let places = JSON.parse(entry[1]); // index 0 is key, index 1 is value
         places.forEach(place => {
-          let p = document.createElement("p");
-		  p.textContent = place.res_name;
-		  results_div.appendChild(p);
+          let b = document.createElement("button");
+		  b.innerHTML = "<button>"+place.res_name+"</button>";
+	      b.addEventListener("click", () => {
+            location.href = '/place_details?'+place_type+'='+place.id;
+          });
+		  results_div.appendChild(b);
         });
       });
     });
@@ -83,7 +87,6 @@
       Object.entries(resp_all).forEach(entry => {
         let places = JSON.parse(entry[1]); // index 0 is key, index 1 is value
         places.forEach(place => {
-          console.log(place);
           let place_type = "restaurant";
           let place_id = place["res_id"];
           if (place["bar_id"]) {
