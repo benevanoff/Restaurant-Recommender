@@ -73,11 +73,8 @@
     req.send();
   }
 
-  function objToDetailsReq(place) {
-    
-  }
 
-  function fetchSuggestion(username) {
+  function fetchSuggestion() {
     let req = new XMLHttpRequest();
     req.addEventListener("load", () => {
       resp_all = JSON.parse(req.responseText); // returns an object with keys "bars", "restaurants", or "cafes" and a string encoding a list of objects
@@ -112,19 +109,25 @@
     let bars_checked = document.getElementById("bars_check").checked;
     let cafes_checked = document.getElementById("cafes_check").checked;
 
-    req.open("GET", "http://127.0.0.1:5000/suggest_handler?username="+document.cookie+"&bars="+bars_checked+"&restaurants="+restaurants_checked+"&cafes="+cafes_checked);
+    req.open("GET", "http://127.0.0.1:5000/suggest_handler?bars="+bars_checked+"&restaurants="+restaurants_checked+"&cafes="+cafes_checked);
     req.send();
   }
-
-  document.cookie = "oQjbVCHVUgiwowSubiWPWXYLxEGNccq"; // crude way to set cookies before login page is made
 
   // button listeners
   let options_btn = document.getElementById("options_btn");
   let history_btn = document.getElementById("history_btn");
+  let preferences_btn = document.getElementById("preferences_btn");
 
   options_btn.addEventListener("click", () => {
     document.getElementById("options_tab").style.visibility = document.getElementById("options_tab").style.visibility == "visible" ? "hidden" : "visible";
   });
+
+  preferences_btn = document.getElementById("preferences_btn");
+  preferences_btn.addEventListener("click", () => {
+    location.href = '/preferences';
+  });
+
+  document.getElementById("logout_btn").addEventListener("click", () => location.href = '/logout')
 
   history_btn.addEventListener("click", () => {
     location.href = '/history';
@@ -139,7 +142,7 @@
   });
 
   suggest_btn.addEventListener("click", () => {
-    fetchSuggestion(document.cookie);
+    fetchSuggestion();
   });
 
 </script>

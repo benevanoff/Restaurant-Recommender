@@ -164,21 +164,17 @@ def suggest():
     conn = db.connect()
     res = {}
     for key in request.args.keys():
-        username = ""
-        print(request.args["bars"])
-        if key == "username": # username needs to be first parameter so it is recognized before making queries
-            username = request.args["username"]
+        username = session["username"]
         if key == "restaurants" and request.args["restaurants"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT res_id, res_name, price_level, rating, num_ratings, address FROM Restaurant r JOIN ServeRestaurant s ON r.id = s.res_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            query = sqlalchemy.text('SELECT DISTINCT res_id, res_name, price_level, rating, num_ratings, address FROM Restaurant r JOIN ServeRestaurant s ON r.id = s.res_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+session["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
-            #print(suggestions.fetchall())
             res["restaurants"] = json.dumps([dict(e) for e in suggestions.fetchall()])
         if key == "bars" and request.args["bars"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT bar_id, res_name, price_level, rating, num_ratings, address FROM Bar r JOIN ServeBar s ON r.id = s.bar_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            query = sqlalchemy.text('SELECT DISTINCT bar_id, res_name, price_level, rating, num_ratings, address FROM Bar r JOIN ServeBar s ON r.id = s.bar_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+session["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
             res ["bars"] = json.dumps([dict(e) for e in suggestions.fetchall()])
         if key == "cafes" and request.args["cafes"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT cafe_id, res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+request.args["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            query = sqlalchemy.text('SELECT DISTINCT cafe_id, res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+session["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
             res ["cafes"] = json.dumps([dict(e) for e in suggestions.fetchall()])
     conn.close()
@@ -251,8 +247,7 @@ def food_history_insert():
 @app.route("/history")
 def history():
     if "username" not in session:
-        flash("not logged in")
-        return {"status": 200}
+        return redirect("/login")
     conn = db.connect()
     resto_res = conn.execute(f'SELECT dish_name, res_id FROM OrderRestaurant o JOIN Food f ON o.food_id=f.id WHERE username="{session["username"]}"').fetchall()
     bar_res = conn.execute(f'SELECT dish_name, bar_id FROM OrderBar o JOIN Food f ON o.food_id=f.id WHERE username="{session["username"]}"').fetchall()
@@ -266,8 +261,24 @@ def history():
     for x in cafe_res:
         hist.append({"food_id" : x[0], "place_id" : x[1]})
         
-    #print(hist) bar
     return render_template('history.html', histories=hist)
-    
-    
-    
+
+@app.route("/preferences")
+def preferences():
+    if "username" not in session:
+        return redirect('/login')
+
+    return render_template('preferences.html')
+
+@app.route("/add_food")
+def add_food():
+    if "username" not in session:
+        return redirect('/login')
+
+    return render_template('add_food.html')
+
+@app.route("/logout")
+def logout():
+    if "username" in session:
+        session.pop("username")
+    return redirect("/login")
