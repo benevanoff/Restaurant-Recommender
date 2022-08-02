@@ -6,12 +6,6 @@ import json
 
 from webapp import database as db_helper
 
-@app.route('/')
-@app.route('/index')
-def index():
-    """Main page"""
-    return render_template('index.html', title='Midterm DEMO')
-
 
 @app.route("/create", methods=('GET', 'POST'))
 def create():
@@ -50,9 +44,15 @@ def login():
     return render_template('login.html')
 
 
+@app.route('/')
 @app.route("/search")
 def search():
     """where the search bar is"""
+    if not session.get("username"):
+        # if not there in the session then redirect to the login page
+        print("aha")
+        flash("Please log in or sign up first")
+        return redirect(url_for("login"))
     return render_template('search.html', username=session["username"])
 
 @app.route("/search_handler")
@@ -73,7 +73,7 @@ def search_handler():
             res["restaurant"] = json.dumps([dict(e) for e in restaurants])
         if key == "cafe":
             query = sqlalchemy.text('SELECT * FROM Cafe WHERE res_name LIKE :keyword LIMIT 10')
-            cafes_res = conn.execute(query, keyword='%'+request.args["restaurant"]+'%')
+            cafes_res = conn.execute(query, keyword='%'+request.args["cafe"]+'%')
             cafes = cafes_res.fetchall()
             res["cafe"] = json.dumps([dict(e) for e in cafes])
 
@@ -152,11 +152,6 @@ def delete():
         return render_template('delete.html')
 
     return render_template('delete.html')
-
-
-@app.route("/query1")
-def query1():
-    return render_template('query1.html')
 
 
 @app.route("/suggest_handler")
@@ -242,7 +237,7 @@ def food_history_insert():
         conn.close()
     if request.form["place_type"] == "restaurant":
         conn = db.connect()
-        conn.execute(f'INSERT INTO OrderCafe (username, food_id, res_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})')
+        conn.execute(f'INSERT INTO OrderRestaurant (username, food_id, res_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})')
         conn.close()
         
     return {"status" : 200}
