@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-<center>
-	<h2>Preferences</h2>
-	<div style="display: flex;justify-content: center;">
-		<p>Price Range: </p>
-		<button>$</button>
-		<button>$$</button>
-		<button>$$$</button>
-	</div>
-	<h3></h3>
-    <button id="add-food">Add Food to Preferences</button>
-</center>
+    <div class="white_box">
 
+        <h2>Preferences</h2>
+        <div style="display: flex;justify-content: center;">
+            <p>Price Range: </p>
+            <button>$</button>
+            <button>$$</button>
+            <button>$$$</button>
+        </div>
+        <h3></h3>
+        <button id="add-food">Add Food to Preferences</button>
+
+    </div>
 <script>
 	document.getElementById("add-food").addEventListener("click", () => location.href = '/add_food');
 </script>

@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <center>
-    <h3>{{name}}</h3>
+  <div class="white_box">
+    <h1>{{name}}</h1>
     <p style="padding:10px 0 0 10px">{{address}}</p>
-    <h4 style="padding:10px 0 0 10px">Menu</h4>
-    <div id="menu_div">
+    <h4 style="padding:10px 0 0 10px; margin: 0 0 20px 0">Menu</h4>
+    <div id="menu_div", class="display_results">
       
     </div>
-  </center>
+  </div>
+
   <script>
     let d;
     let p;

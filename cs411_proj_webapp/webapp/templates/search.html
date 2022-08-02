@@ -1,19 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <button id="options_btn">Options</button>
-    <div id="options_tab" style="margin:5px;border:1px solid #fea50a;position:absolute;width:20%;height:50%;visibility:hidden;">
-      <center>      
-        <p>{{username}}</p>
-        <button id="preferences_btn">Preferences</button>
-        <button id="history_btn">History</button>
-      </center>
-      <center>
-        <button id="logout_btn">Logout</button>
-      </center>
-    </div>
+
+    <div class="white_box">
     <div class="form_area">
-        <h2 style="padding: 20px 0 20px 0">Search</h2>
+        <h1 style="padding: 0 0 20px 0">Search</h1>
         <div class = "checkbox_area">
           <label> <input id="restaurants_check" type="checkbox"> Restaurants</label>
           <label> <input id="cafes_check" type="checkbox"> Cafes</label>
@@ -27,9 +18,20 @@
           <button id="submit_suggest">Suggest</button>
         </div>
 
-        <div id="results_div">
+    </div>
+        <div id="results_div", class="display_results">
 
         </div>
+    </div>
+
+    <button id="options_btn">Options</button>
+    <div id="options_tab" class="optionTab">
+        <p><img src="../static/img/avatar.png" width="80" height="80" alt="480">{{username}}</p>
+
+        <button id="preferences_btn">Preferences</button>
+        <button id="history_btn">History</button>
+        <button id="password_change">Change password</button>
+        <button id="logout_btn">Log out</button>
     </div>
 <script>
 
@@ -120,6 +122,7 @@
   let options_btn = document.getElementById("options_btn");
   let history_btn = document.getElementById("history_btn");
   let preferences_btn = document.getElementById("preferences_btn");
+  let password_btn = document.getElementById("password_change");
 
   options_btn.addEventListener("click", () => {
     document.getElementById("options_tab").style.visibility = document.getElementById("options_tab").style.visibility == "visible" ? "hidden" : "visible";
@@ -128,6 +131,10 @@
   preferences_btn = document.getElementById("preferences_btn");
   preferences_btn.addEventListener("click", () => {
     location.href = '/preferences';
+  });
+
+  password_btn.addEventListener("click", () => {
+      location.href = '/update';
   });
 
   document.getElementById("logout_btn").addEventListener("click", () => location.href = '/logout')

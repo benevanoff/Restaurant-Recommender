@@ -11,21 +11,20 @@
         <!-- special classes custom style css -->
         <link rel="stylesheet" href="{{ url_for('static', filename='css/specialClass.css') }}">
 
-        {% if title %}
-        <title>{{ title }} - Grp39</title>
-        {% else %}
         <title>CS411 Proj Grp39</title>
-        {% endif %}
+
     </head>
     <body>
         <nav class="navbar navbar_custom">
-{#            <span>CS411 Project midterm demo:</span>#}
             <ul>
                 <li class="nav-item">
-                    <a href="{{ url_for('index') }}">Home</a>
+                    <a href="{{ url_for('search') }}">Search</a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ url_for('search_validation') }}">Search database</a>
+                    <a href="{{ url_for('login') }}">Log in</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('create') }}">Sign up</a>
                 </li>
 
             </ul>

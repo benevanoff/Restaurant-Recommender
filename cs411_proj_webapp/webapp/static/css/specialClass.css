@@ -4,7 +4,7 @@
     padding: 20px;
     margin: 5px;
     color: #970020;
-    background-color: #000000;
+    background-color: #F4E5E8;
 }
 
 .navbar_custom {
@@ -57,6 +57,7 @@
 div.form_area {
     display: block;
     text-align: center;
+    padding: 40px 0 0 0;
 }
 
 div.row{
@@ -73,13 +74,27 @@ div.column2{
     padding: 0 0 0 80px;
 }
 div.display_results{
-    width: 500px;
-    height: 200px;
-    border: 5px solid #002EA6;
-    padding: 5px;
-    margin: 20px;
+    width: 90%;
+    height: 40%;
+    border: 2px solid #002EA6;
+    padding: 2px;
+    top: 0; bottom: 0; left: 0; right: 0;
+    margin: auto;
     overflow: auto;
 }
+
+div.display_results p{
+    padding: 3px;
+}
+div.display_results button{
+    background-color: #FFE78F;
+    color: black;
+    padding: 5px 10px;
+}
+div.display_results button:hover{
+    background-color: #fff7dc;
+}
+
 
 div.checkbox_area label{
     font-size: 18px;
@@ -90,4 +105,44 @@ div.checkbox_area label{
 input.main_search {
     width: 50%;
     padding: 8px;
+}
+
+div.white_box {
+    background: rgba(255,255,255,.95);
+    position: absolute;
+    width: 70%;
+    height: 70%;
+    top: 0; bottom: 0; left: 0; right: 0;
+    margin: auto;
+    text-align: center;
+}
+
+div.optionTab {
+    margin:0 0 0 10px;
+    border:1px solid #fea50a;
+    background-color: rgba(255,255,255,.95);
+    position:absolute;
+    width:20%;
+    height:60%;
+    visibility:hidden;
+}
+
+div.optionTab p{
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+}
+
+div.optionTab button{
+    width: 100%;
+    background-color: white;
+    text-align: left;
+    margin: 0;
+    border-radius:0;
+    border: #002EA6;
+    color: #002EA6;
+    cursor: pointer;
+}
+
+ div.optionTab button:hover{
+     background-color: #FFE78F;
 }
