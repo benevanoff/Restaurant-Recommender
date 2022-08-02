@@ -106,9 +106,27 @@ The output table will be the candidate restaurants that may be recommended to th
 
 
 ### 3. How would you want to further improve your application? In terms of database design and system optimization?
-
+* Database design: re-design our schema: 
+  * choose the smallest data type possible (e.g. real_name: varchar(255))
+  * normalization to remove redundancy or denormalization to improve efficiency
+* System optimization
+  * query optimization
+* Website functionality
+  * add more supported cities
+  * link to order take-out website
 
 ### 4. What were the challenges you faced when implementing and designing the application? How was it the same/different from the original design?
-
+* Challenges:
+  * data collection process: Hard to find actual data that we need
+  * implementing database schema: Hard to find a good index for our queries (see our stage 3 report)
+* Compared to original design:
+  * Most basic functionalities and layouts are the same
+  * We changed from tags (e.g. spice lovers) to favorite foods (e.g. tacos) for more specific
+recommendations and better connected with the menu from restaurants.
 
 ### 5. If you were to include a NoSQL database, how would you incorporate it into your application?
+* Given the flexibility, scalability of nosql db, we may add functionalities such as asking users to put their comments for food or recommendations we made
+and build the nosql database on these comments, plus their favorites, past orders (wchich kept growing)
+for a better recommendation algorithm and possibly displaying these comments for each recommendation
+we made.
+
