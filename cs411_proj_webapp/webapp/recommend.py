@@ -194,7 +194,7 @@ def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.05, 
 ############# Return Rec ###########
 def recommend(username, key):
     type = ""
-    if key == "restaurants": 
+    if key == "restaurant": 
         type = "Restaurant"
     elif key == "bars": 
         type = "Bar"
@@ -207,6 +207,7 @@ def recommend(username, key):
     model = torch.load(config.model_path+type+".pth")
     user_hash = pd.read_csv(config.model_path+"user.csv")
     rec = {}
+    res1 = {}
     conn = db.connect()
 
     if (user_hash["Username"]==username).any():
@@ -220,23 +221,27 @@ def recommend(username, key):
         query = query = sqlalchemy.text(f'SELECT DISTINCT id, res_name, price_level, rating, num_ratings, address FROM {type} WHERE id ={indices[0]} OR id ={indices[1]} OR id ={indices[2]}')
         if type=="Restaurant":
             query = sqlalchemy.text(f'SELECT DISTINCT res_id, res_name, price_level, rating, num_ratings, address FROM Restaurant WHERE res_id ={indices[0]} OR res_id ={indices[1]} OR res_id ={indices[2]}')
-        rec[key] = json.dumps([dict(e) for e in conn.execute(query).fetchall()])
+        #res1 = [dict(e) for e in conn.execute(query).fetchall()]
+        rec[key] = [dict(e) for e in conn.execute(query).fetchall()]
     else:
-        if key == "restaurants":
+        if key == "restaurant":
             query = sqlalchemy.text('SELECT DISTINCT res_id, res_name, price_level, rating, num_ratings, address FROM Restaurant r JOIN ServeRestaurant s ON r.id = s.res_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+username+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
-            rec["restaurants"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+            #res1 = [dict(e) for e in suggestions.fetchall()]
+            rec["restaurant"] = [dict(e) for e in suggestions.fetchall()]
         if key == "bars":
             query = sqlalchemy.text('SELECT DISTINCT bar_id, res_name, price_level, rating, num_ratings, address FROM Bar r JOIN ServeBar s ON r.id = s.bar_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+username+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
-            rec ["bars"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+            rec ["bars"] = [dict(e) for e in suggestions.fetchall()]
         if key == "cafes":
             query = sqlalchemy.text('SELECT DISTINCT cafe_id, res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+username+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
-            rec ["cafes"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+            rec ["cafes"] = [dict(e) for e in suggestions.fetchall()]
 
     conn.execute(sqlalchemy.text(f'CALL findUserCandidatePlaces("{username}")'))
-    tem = conn.execute(sqlalchemy.text(f'SELECT * FROM userCandidatePlaces'))
-    rec[key] += json.dumps([dict(e) for e in tem.fetchall()])
+    tem = conn.execute(sqlalchemy.text(f'SELECT * FROM userCandidatePlaces limit 5'))
+    res2 = [dict(e) for e in tem.fetchall()]
+    for x in res2:
+        rec[key].append(x)
 
-    return rec
+    return json.dumps(rec)
