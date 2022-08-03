@@ -234,9 +234,9 @@ def recommend(username, key):
             query = sqlalchemy.text('SELECT DISTINCT cafe_id, res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+username+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
             suggestions = conn.execute(query)
             rec ["cafes"] = json.dumps([dict(e) for e in suggestions.fetchall()])
-        conn.close()
-        return rec
 
-    conn.close()
+    conn.execute(sqlalchemy.text(f'CALL findUserCandidatePlaces("{username}")'))
+    tem = conn.execute(sqlalchemy.text(f'SELECT * FROM userCandidatePlaces'))
+    rec[key] += json.dumps([dict(e) for e in tem.fetchall()])
 
     return rec
