@@ -89,26 +89,31 @@
       let results_div = document.getElementById("results_div");
       results_div.innerHTML = ""; // clear list before populating with new results
       Object.entries(resp_all).forEach(entry => {
-        let places = JSON.parse(entry[1]); // index 0 is key, index 1 is value
-        places.forEach(place => {
-          let place_type = "restaurant";
-          let place_id = place["res_id"];
+	    let place_type = entry[0];
+        entry[1].forEach((place) => {
+		  console.log(place);
+          let place_id;
           if (place["bar_id"]) {
 			place_type = "bar";
             place_id = place["bar_id"];
           }
-          if (place["cafe_id"]) {
+          else if (place["cafe_id"]) {
 			place_type = "cafe";
 			place_id = place["cafe_id"];
 		  }
-          let b = document.createElement("button");
-          
+		  else if (place["res_id"]) {
+		    place_type = "restaurant";
+		    place_id = place["res_id"];
+		  }
+		  else place_id = 0;
+		  let b = document.createElement("button");
+
 		  b.innerHTML = '<button>'+place.res_name+'</button>';
           b.addEventListener("click", () => {
             location.href = '/place_details?'+place_type+'='+place_id;
           });
 		  results_div.appendChild(b);
-        });
+		});
       });
     });
 
@@ -116,7 +121,7 @@
     let bars_checked = document.getElementById("bars_check").checked;
     let cafes_checked = document.getElementById("cafes_check").checked;
 
-    req.open("GET", "http://127.0.0.1:5000/suggest_handler?bars="+bars_checked+"&restaurants="+restaurants_checked+"&cafes="+cafes_checked);
+    req.open("GET", "http://127.0.0.1:5000/suggest_handler?bars="+bars_checked+"&restaurant="+restaurants_checked+"&cafes="+cafes_checked);
     req.send();
   }
 

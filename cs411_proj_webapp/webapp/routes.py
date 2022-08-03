@@ -136,7 +136,7 @@ def suggest():
     rec = {}
     for key in request.args.keys():
         username = session["username"]
-        if (key == "restaurants" and request.args["restaurants"] == "true") \
+        if (key == "restaurant" and request.args["restaurant"] == "true") \
             or (key == "bars" and request.args["bars"] == "true") or (key == "cafes" and request.args["cafes"] == "true"):
             rec = recommend.recommend(username,key)
     return rec
@@ -161,6 +161,7 @@ def place_details():
             place_type = "cafe"
             place_id = request.args["cafe"]
             details = db_helper.fetch_place_details(place_type, place_id)
+    print(details)
     place_name = details["place_name"]
     place_address = details["place_address"]
     menu = details["menu"]
