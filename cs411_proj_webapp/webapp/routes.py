@@ -164,8 +164,7 @@ def suggest():
         username = session["username"]
         if (key == "restaurants" and request.args["restaurants"] == "true") \
             or (key == "bars" and request.args["bars"] == "true") or (key == "cafes" and request.args["cafes"] == "true"):
-            suggestions = recommend.recommend(username,key)
-            rec[key] = json.dumps(suggestions)
+            rec = recommend.recommend(username,key)
     return rec
 
 
@@ -292,9 +291,11 @@ def insert_favorites():
     db.connect().execute(f'INSERT INTO Favorites (username, food_id) VALUES ("{session["username"]}", "{request.form["food_id"]}")')
     return {"status": 200}
 
-@app.route("/testrecommend", methods = ('GET','POST'))
-def testrecommend():
+@app.route("/train", methods = ('GET','POST'))
+def train():
     if request.method == 'POST':
-        results = recommend.recommend("Cafe")
-        return render_template('testrecommend.html',results = results)
-    return render_template('testrecommend.html')
+        recommend.train("Bar")
+        recommend.train("Restaurant")
+        recommend.train("Cafe")
+        return render_template('train.html',results = ["Success!"])
+    return render_template('train.html')

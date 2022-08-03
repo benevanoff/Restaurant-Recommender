@@ -10,10 +10,11 @@ import sqlalchemy
 import pandas as pd
 import os
 import config
+import json
 
 ################## Data Class Definition #############
 class NCFData(data.Dataset):
-	def __init__(self, features, num_item, train_mat=None, num_ng=0):
+	def __init__(self, features, num_item, train_mat, num_ng=0):
 		super(NCFData, self).__init__()
 
 		self.features_ps = features
@@ -129,16 +130,16 @@ def load_data(type):
     user_count = -1
     current_username = ""
 
-    #print("max_resid", max_resid)
+    user_hash = pd.DataFrame(columns=['Username','Id'])
     train_mat = [[0 for x in range(max_resid)] for y in range(count_username)] 
     train_data = []
     for row in result:
         username = row[0]
         res_id = row[1]
 
-        #print("user:", username, " res_id: ", res_id)
-
+        
         if( username != current_username):
+            user_hash = user_hash.append([[username, int(user_count+1)]])
             user_count = user_count + 1
             current_username = username
         train_data.append([user_count,res_id])
@@ -147,9 +148,12 @@ def load_data(type):
     number_user = user_count + 1
     number_restaurant = max_resid
 
+    if os.path.exists(config.model_path+"user.csv"):
+        os.remove(config.model_path+"user.csv")
+    user_hash.to_csv(config.model_path+"user.csv")
     return train_data, number_user,number_restaurant, train_mat
 
-def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.01, factor_num=10, num_layers=4, dropout_rate=0.1):
+def train(type, num_ng=0, batch_size=32, training_epoch=1, learning_rate=0.05, factor_num=100, num_layers=4, dropout_rate=0.1):
     # prepare data
     train_data, number_user, number_restaurant, train_mat = load_data(type)
     train_dataset = NCFData(train_data, number_user, train_mat, num_ng)
@@ -157,7 +161,7 @@ def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.01, 
 
     # initialize model
     model = NCF(number_user=number_user, number_restaurant=number_restaurant, factor_num=factor_num, num_layers=num_layers, dropout_rate=dropout_rate)
-    # model.cuda()
+    #model.cuda()
     loss_function = nn.BCEWithLogitsLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -189,20 +193,49 @@ def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.01, 
 
 ############# Return Rec ###########
 def recommend(username, key):
-    if key == "restaurants": type = "Restaurant"
-    elif key == "bars": type = "Bar"
-    elif key == "cafes": type = "Cafe"
+    type = ""
+    if key == "restaurants": 
+        type = "Restaurant"
+    elif key == "bars": 
+        type = "Bar"
+    else: 
+        type = "Cafe"
 
     assert os.path.exists(config.model_path+type+".pth"), "No trained model to load"
+    assert os.path.exists(config.model_path+"user.csv"), "No trained model to load"
+    
     model = torch.load(config.model_path+type+".pth")
-
-    conn = db.connect()
+    user_hash = pd.read_csv(config.model_path+"user.csv")
     rec = {}
-    if type == "Restaurant":
-        query = sqlalchemy.text('SELECT DISTINCT res_id FROM Restaurant');
-        complete_list = conn.execute(query).fetchall()
-    elif type == "Bar":
-        query = sqlalchemy.text('SELECT DISTINCT id FROM Bar');
+    conn = db.connect()
+
+    if (user_hash["Username"]==username).any():
+        da, n, _, mat = load_data(type)
+        t = NCFData(da,n,mat)
+        loader = data.DataLoader(t,batch_size=16, shuffle=False, num_workers=0)
+        loader.dataset.ng_sample()
+        for user, item, label in loader:
+            predictions = model(user, item)
+        _, indices = torch.topk(predictions, 3) #fetch top 3 most possible restaurants
+        query = query = sqlalchemy.text(f'SELECT DISTINCT id, res_name, price_level, rating, num_ratings, address FROM {type} WHERE id ={indices[0]} OR id ={indices[1]} OR id ={indices[2]}')
+        if type=="Restaurant":
+            query = sqlalchemy.text(f'SELECT DISTINCT res_id, res_name, price_level, rating, num_ratings, address FROM Restaurant WHERE res_id ={indices[0]} OR res_id ={indices[1]} OR res_id ={indices[2]}')
+        rec[key] = json.dumps([dict(e) for e in conn.execute(query).fetchall()])
+    else:
+        if key == "restaurants":
+            query = sqlalchemy.text('SELECT DISTINCT res_id, res_name, price_level, rating, num_ratings, address FROM Restaurant r JOIN ServeRestaurant s ON r.id = s.res_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+username+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            suggestions = conn.execute(query)
+            rec["restaurants"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+        if key == "bars":
+            query = sqlalchemy.text('SELECT DISTINCT bar_id, res_name, price_level, rating, num_ratings, address FROM Bar r JOIN ServeBar s ON r.id = s.bar_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+username+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            suggestions = conn.execute(query)
+            rec ["bars"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+        if key == "cafes":
+            query = sqlalchemy.text('SELECT DISTINCT cafe_id, res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+username+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
+            suggestions = conn.execute(query)
+            rec ["cafes"] = json.dumps([dict(e) for e in suggestions.fetchall()])
+        conn.close()
+        return rec
 
     conn.close()
 
