@@ -1,3 +1,4 @@
+from itertools import count
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -107,7 +108,41 @@ class NCF(nn.Module):
 #################### Training ####################
 def load_data(type):
 
-    return train_data, number_user, number_restaurant, train_mat
+    conn = db.connect()
+    query = sqlalchemy.text('SELECT username, res_id FROM OrderRestaurant ORDER BY username')
+    result = conn.execute(query).fetchall()
+
+    max_resid_query = sqlalchemy.text('SELECT MAX(res_id) FROM OrderRestaurant')
+    max_resid_result = conn.execute(max_resid_query).fetchall()
+    max_resid = int(max_resid_result[0][0]) + 1
+    
+    count_username_query = sqlalchemy.text('SELECT COUNT(DISTINCT username) FROM OrderRestaurant')
+    count_username_result = conn.execute(count_username_query).fetchall()
+    count_username = int(count_username_result[0][0]) + 1
+
+    user_count = -1
+    current_username = ""
+
+    #print("max_resid", max_resid)
+    train_mat = [[0 for x in range(max_resid)] for y in range(count_username)] 
+    for row in result:
+        username = row[0]
+        res_id = row[1]
+
+        #print("user:", username, " res_id: ", res_id)
+
+        if( username != current_username):
+            user_count = user_count + 1
+            current_username = username
+
+        train_mat[user_count][res_id] +=1
+
+
+    train_data = train_mat
+    number_user = user_count
+    number_restaurant = max_resid
+
+    return train_data, number_user,number_restaurant, train_mat
 
 def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.1, factor_num=10, num_layers=4, dropout=0.1):
     # prepare data

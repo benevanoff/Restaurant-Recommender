@@ -1,11 +1,14 @@
+#from lib2to3.pytree import _Results
 from mimetypes import init
+from unittest import result
 from flask import render_template, request, url_for, flash, redirect, session
 from webapp import app, db
 import sqlalchemy
 import json
-import recommend
+#import recommend
 
 from webapp import database as db_helper
+from webapp.recommend import load_data
 
 @app.route('/')
 @app.route('/index')
@@ -289,3 +292,10 @@ def insert_favorites():
         return {"status": 500}
     db.connect().execute(f'INSERT INTO Favorites (username, food_id) VALUES ("{session["username"]}", "{request.form["food_id"]}")')
     return {"status": 200}
+
+@app.route("/testrecommend", methods = ('GET','POST'))
+def testrecommend():
+    if request.method == 'POST':
+        results = load_data(0)
+        return render_template('testrecommend.html',results = results)
+    return render_template('testrecommend.html')

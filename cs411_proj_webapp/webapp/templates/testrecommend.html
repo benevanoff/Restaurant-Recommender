@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="form_area">
+        <form method="POST">
+            <button type="submit">load data</button>
+        </form>
+    </div>
+
+    {% for item in results %}
+    <ul>
+        <li> {{item}} </li>
+    </ul>
+    {% endfor %}
+
+{% endblock %}
