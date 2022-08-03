@@ -36,59 +36,56 @@ times. We repeat the same trigger for bar, restaurant, and cafe.
 
 ```sql
 -- Stored Procedure
-DELIMITER $$
-
-CREATE PROCEDURE userSummary(IN username_in varchar(35))
+CREATE PROCEDURE findUserCandidatePlaces(IN username_in varchar(35))
 	BEGIN
-		DECLARE fav_food VARCHAR(255);
-		DECLARE done int default 0;
-        DECLARE fav_cur CURSOR FOR (SELECT food_id FROM Favorites WHERE username=username_in);
-        DECLARE CONTINUE HANDLER FOR NOT FOUND SET done=1;
+	    DECLARE fav_food VARCHAR(255);
+	    DECLARE done int default 0;
+            DECLARE fav_cur CURSOR FOR (SELECT food_id FROM Favorites WHERE username=username_in);
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET done=1;
         
-        DROP TABLE IF EXISTS userSummaryReport;
+            DROP TABLE IF EXISTS userCandidatePlaces;
         
-        CREATE TABLE userSummaryReport (
-			fav_food VARCHAR(255),
-			res_name VARCHAR(255),
-            price_level INT,
-			rating double
-        );
+          CREATE TABLE userCandidatePlaces (
+              fav_food VARCHAR(255),
+              res_name VARCHAR(255),
+              price_level INT,
+              rating double
+          );
         
-        OPEN fav_cur;
-        REPEAT 
-			FETCH fav_cur INTO fav_food;
-            INSERT INTO userSummaryReport(
+          OPEN fav_cur;
+          REPEAT 
+              FETCH fav_cur INTO fav_food;
+              INSERT INTO userCandidatePlaces(
             
-				WITH places AS(
-                (SELECT s.food_id, res_name, price_level, rating
-				FROM ServeCafe s NATURAL JOIN Cafe
-				WHERE s.food_id=fav_food)
-				UNION
-				(SELECT s.food_id, res_name, price_level, rating
-				FROM ServeBar s NATURAL JOIN Bar
-				WHERE s.food_id=fav_food)
-                UNION
-				(SELECT s.food_id, res_name, price_level, rating
-				FROM ServeRestaurant s NATURAL JOIN Restaurant
-				WHERE s.food_id=fav_food)
-                )
+                    WITH places AS(
+                    (SELECT s.food_id, res_name, price_level, rating
+                    FROM ServeCafe s NATURAL JOIN Cafe
+                    WHERE s.food_id=fav_food)
+                    UNION
+                    (SELECT s.food_id, res_name, price_level, rating
+                    FROM ServeBar s NATURAL JOIN Bar
+                    WHERE s.food_id=fav_food)
+                    UNION
+                    (SELECT s.food_id, res_name, price_level, rating
+                    FROM ServeRestaurant s NATURAL JOIN Restaurant
+                    WHERE s.food_id=fav_food)
+                    )
                 
-                SELECT dish_name, res_name, places.price_level, max_ratings
-				FROM Food 
-					JOIN places on Food.id = places.food_id
-					JOIN 
-					(SELECT price_level, MAX(rating) as max_ratings
-					FROM places
-					GROUP BY price_level) AS temp
-					ON places.price_level = temp.price_level
-					   AND places.rating = temp.max_ratings
-				ORDER BY places.price_level
+                    SELECT dish_name, res_name, places.price_level, max_ratings
+                    FROM Food 
+                        JOIN places on Food.id = places.food_id
+                        JOIN 
+                        (SELECT price_level, MAX(rating) as max_ratings
+                        FROM places
+                        GROUP BY price_level) AS temp
+                        ON places.price_level = temp.price_level
+                           AND places.rating = temp.max_ratings
+                    ORDER BY places.price_level
 				
                 );
-		UNTIL done
-        END REPEAT;
+          UNTIL done
+          END REPEAT;
         
-
     END$$
 DELIMITER ;
 ```
