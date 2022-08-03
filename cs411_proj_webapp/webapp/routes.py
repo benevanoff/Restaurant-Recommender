@@ -5,10 +5,9 @@ from flask import render_template, request, url_for, flash, redirect, session
 from webapp import app, db
 import sqlalchemy
 import json
-#import recommend
 
 from webapp import database as db_helper
-from webapp.recommend import load_data
+import webapp.recommend as recommend
 
 @app.route('/')
 @app.route('/index')
@@ -296,6 +295,6 @@ def insert_favorites():
 @app.route("/testrecommend", methods = ('GET','POST'))
 def testrecommend():
     if request.method == 'POST':
-        results = load_data(0)
+        results = recommend.recommend("Cafe")
         return render_template('testrecommend.html',results = results)
     return render_template('testrecommend.html')

@@ -7,7 +7,7 @@ import torch.utils.data as data
 
 from webapp import db
 import sqlalchemy
-import json
+import pandas as pd
 import os
 import config
 
@@ -109,14 +109,20 @@ class NCF(nn.Module):
 def load_data(type):
 
     conn = db.connect()
-    query = sqlalchemy.text('SELECT username, res_id FROM OrderRestaurant ORDER BY username')
+    if type=="Restaurant":
+        query = sqlalchemy.text(f'SELECT username, res_id FROM Order{type} ORDER BY username')
+    else:
+        query = sqlalchemy.text(f'SELECT username, id FROM Order{type} ORDER BY username')
     result = conn.execute(query).fetchall()
 
-    max_resid_query = sqlalchemy.text('SELECT MAX(res_id) FROM OrderRestaurant')
+    if type == "Restaurant":
+        max_resid_query = sqlalchemy.text(f'SELECT MAX(res_id) FROM Order{type}')
+    else:
+        max_resid_query = sqlalchemy.text(f'SELECT MAX(id) FROM Order{type}')
     max_resid_result = conn.execute(max_resid_query).fetchall()
     max_resid = int(max_resid_result[0][0]) + 1
     
-    count_username_query = sqlalchemy.text('SELECT COUNT(DISTINCT username) FROM OrderRestaurant')
+    count_username_query = sqlalchemy.text(f'SELECT COUNT(DISTINCT username) FROM Order{type}')
     count_username_result = conn.execute(count_username_query).fetchall()
     count_username = int(count_username_result[0][0]) + 1
 
@@ -125,6 +131,7 @@ def load_data(type):
 
     #print("max_resid", max_resid)
     train_mat = [[0 for x in range(max_resid)] for y in range(count_username)] 
+    train_data = []
     for row in result:
         username = row[0]
         res_id = row[1]
@@ -134,25 +141,23 @@ def load_data(type):
         if( username != current_username):
             user_count = user_count + 1
             current_username = username
-
+        train_data.append([user_count,res_id])
         train_mat[user_count][res_id] +=1
 
-
-    train_data = train_mat
-    number_user = user_count
+    number_user = user_count + 1
     number_restaurant = max_resid
 
     return train_data, number_user,number_restaurant, train_mat
 
-def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.1, factor_num=10, num_layers=4, dropout=0.1):
+def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.01, factor_num=10, num_layers=4, dropout_rate=0.1):
     # prepare data
     train_data, number_user, number_restaurant, train_mat = load_data(type)
     train_dataset = NCFData(train_data, number_user, train_mat, num_ng)
     train_loader = data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
     # initialize model
-    model = NCF(number_user=number_user, number_restaurant=number_restaurant, factor_num=factor_num, num_layers=num_layers, dropout=dropout)
-    model.cuda()
+    model = NCF(number_user=number_user, number_restaurant=number_restaurant, factor_num=factor_num, num_layers=num_layers, dropout_rate=dropout_rate)
+    # model.cuda()
     loss_function = nn.BCEWithLogitsLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -163,13 +168,13 @@ def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.1, f
         train_loader.dataset.ng_sample()
 
         for user, restaurant, label in train_loader:
-            user = user.cuda()
-            restaurant = restaurant.cuda()
-            label = label.float().cuda()
+            #user = user.cuda()
+            #restaurant = restaurant.cuda()
+            #label = label.float().cuda()
 
             model.zero_grad()
             prediction = model(user, restaurant)
-            loss = loss_function(prediction, label)
+            loss = loss_function(prediction, label.float())
             loss.backward()
             optimizer.step()
 
@@ -177,6 +182,9 @@ def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.1, f
 
     if not os.path.exists(config.model_path):
         os.mkdir(config.model_path)
+    if os.path.exists(config.model_path+type+".pth"):
+        os.remove(config.model_path+type+".pth")
+
     torch.save(model, config.model_path+type+".pth")
 
 ############# Return Rec ###########
@@ -191,12 +199,10 @@ def recommend(username, key):
     conn = db.connect()
     rec = {}
     if type == "Restaurant":
-        query = sqlalchemy.text('SELECT DISTINCT id FROM Restaurant');
+        query = sqlalchemy.text('SELECT DISTINCT res_id FROM Restaurant');
         complete_list = conn.execute(query).fetchall()
     elif type == "Bar":
         query = sqlalchemy.text('SELECT DISTINCT id FROM Bar');
-    elif type == "Cafe":
-        query = sqlalchemy.text('SELECT DISTINCT id FROM Cafe');
 
     conn.close()
 
