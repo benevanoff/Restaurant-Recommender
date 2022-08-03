@@ -1,0 +1,18 @@
+<!--REQUIRES: title-->
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>CS411 Project Grp39 {{ title }}</h1>
+    <h2> CRUD + Search operations </h2>
+
+    <ol class="index_ops">
+        <li><a href="{{ url_for('search') }}">Search the database using a keyword + one advanced search query </a></li>
+        <li><a href="{{ url_for('create') }}">Insert new records</a></li>
+        <li><a href="{{ url_for('update') }}">Update records on the database</a></li>
+        <li><a href="{{ url_for('delete') }}">Delete rows from the database</a></li>
+        <li><a href="{{ url_for('query2') }}">Demo for the other advanced query (website stats report)</a></li>
+        <li><a href="{{ url_for('train') }}">train</a></li>
+
+    </ol>
+
+{% endblock %}

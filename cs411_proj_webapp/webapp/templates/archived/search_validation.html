@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Search to Validate Operation</h1>
+
+    <h3> Tables: </h3>
+    <div class="row">
+        <div class="column1">
+            <ul>
+              {% for key, value in all_tables.items() %}
+              <li> {{ key }}  </li>
+                  <ul>
+                      {% for col in value %}
+                          <li> {{ col }}</li>
+                      {% endfor %}
+                  </ul>
+              {% endfor %}
+            </ul>
+        </div>
+
+        <div class="column2">
+            <form method="post">
+                <label for="table">Which Table</label>
+                <br>
+                <input type="text" name="table"
+                       placeholder="Customer"
+                       value="{{ request.form['table'] }}"></input>
+                <br>
+
+                <label for="column">Which Column</label>
+                <br>
+                <input type="text" name="column"
+                       placeholder="username"
+                       value="{{ request.form['column'] }}"></input>
+                <br>
+
+                <label for="tupleKey">Which Tuple</label>
+                <br>
+                <input type="text" name="tupleKey"
+                       placeholder="my_name"
+                       value="{{ request.form['tupleKey'] }}"></input>
+                <br>
+
+                <button type="submit">Submit</button>
+            </form>
+
+        <h3>Search results:</h3>
+        <div class="display_results">
+            {% for item in results %}
+                <ul>
+                    <li> {{item}} </li>
+                </ul>
+            {% endfor %}
+        </div>
+
+        </div>
+    </div>
+
+
+{% endblock %}
