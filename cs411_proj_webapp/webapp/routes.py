@@ -1,10 +1,13 @@
+#from lib2to3.pytree import _Results
 from mimetypes import init
+from unittest import result
 from flask import render_template, request, url_for, flash, redirect, session
 from webapp import app, db
 import sqlalchemy
 import json
 
 from webapp import database as db_helper
+import webapp.recommend as recommend
 
 
 @app.route("/create", methods=('GET', 'POST'))
@@ -130,24 +133,13 @@ def delete():
 
 @app.route("/suggest_handler")
 def suggest():
-    conn = db.connect()
-    res = {}
+    rec = {}
     for key in request.args.keys():
         username = session["username"]
-        if key == "restaurants" and request.args["restaurants"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT res_id, res_name, price_level, rating, num_ratings, address FROM Restaurant r JOIN ServeRestaurant s ON r.id = s.res_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+session["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
-            suggestions = conn.execute(query)
-            res["restaurants"] = json.dumps([dict(e) for e in suggestions.fetchall()])
-        if key == "bars" and request.args["bars"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT bar_id, res_name, price_level, rating, num_ratings, address FROM Bar r JOIN ServeBar s ON r.id = s.bar_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+session["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
-            suggestions = conn.execute(query)
-            res ["bars"] = json.dumps([dict(e) for e in suggestions.fetchall()])
-        if key == "cafes" and request.args["cafes"] == "true":
-            query = sqlalchemy.text('SELECT DISTINCT cafe_id, res_name, price_level, rating, num_ratings, address FROM Cafe r JOIN ServeCafe s ON r.id = s.cafe_id WHERE price_level IN (1, 2) AND rating > 4.5 AND num_ratings > 100 AND food_id IN (SELECT food_id FROM Favorites WHERE username="'+session["username"]+'") ORDER BY rating DESC, num_ratings DESC LIMIT 15');
-            suggestions = conn.execute(query)
-            res ["cafes"] = json.dumps([dict(e) for e in suggestions.fetchall()])
-    conn.close()
-    return res
+        if (key == "restaurants" and request.args["restaurants"] == "true") \
+            or (key == "bars" and request.args["bars"] == "true") or (key == "cafes" and request.args["cafes"] == "true"):
+            rec = recommend.recommend(username,key)
+    return rec
 
 @app.route("/place_details")
 def place_details():
@@ -250,6 +242,14 @@ def insert_favorites():
     db.connect().execute(f'INSERT INTO Favorites (username, food_id) VALUES ("{session["username"]}", "{request.form["food_id"]}")')
     return {"status": 200}
 
+@app.route("/train", methods = ('GET','POST'))
+def train():
+    if request.method == 'POST':
+        recommend.train("Bar")
+        recommend.train("Restaurant")
+        recommend.train("Cafe")
+        return render_template('train.html',results = ["Success!"])
+    return render_template('train.html')
 
 
 # @app.route("/query2", methods = ('GET','POST'))
