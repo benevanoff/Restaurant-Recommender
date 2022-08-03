@@ -153,7 +153,7 @@ def load_data(type):
     user_hash.to_csv(config.model_path+"user.csv")
     return train_data, number_user,number_restaurant, train_mat
 
-def train(type, num_ng=0, batch_size=32, training_epoch=1, learning_rate=0.05, factor_num=100, num_layers=4, dropout_rate=0.1):
+def train(type, num_ng=0, batch_size=32, training_epoch=10, learning_rate=0.05, factor_num=100, num_layers=4, dropout_rate=0.1):
     # prepare data
     train_data, number_user, number_restaurant, train_mat = load_data(type)
     train_dataset = NCFData(train_data, number_user, train_mat, num_ng)
@@ -161,7 +161,7 @@ def train(type, num_ng=0, batch_size=32, training_epoch=1, learning_rate=0.05, f
 
     # initialize model
     model = NCF(number_user=number_user, number_restaurant=number_restaurant, factor_num=factor_num, num_layers=num_layers, dropout_rate=dropout_rate)
-    #model.cuda()
+    model.cuda()
     loss_function = nn.BCEWithLogitsLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -172,13 +172,13 @@ def train(type, num_ng=0, batch_size=32, training_epoch=1, learning_rate=0.05, f
         train_loader.dataset.ng_sample()
 
         for user, restaurant, label in train_loader:
-            #user = user.cuda()
-            #restaurant = restaurant.cuda()
-            #label = label.float().cuda()
+            user = user.cuda()
+            restaurant = restaurant.cuda()
+            label = label.float().cuda()
 
             model.zero_grad()
             prediction = model(user, restaurant)
-            loss = loss_function(prediction, label.float())
+            loss = loss_function(prediction, label)
             loss.backward()
             optimizer.step()
 
