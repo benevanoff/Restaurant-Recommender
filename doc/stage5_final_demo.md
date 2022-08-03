@@ -103,7 +103,8 @@ The output table will be the candidate restaurants that may be recommended to th
 
 
 ### 2. How did the creative component add extra value to your application?
-
+* We adopted the Neural Collaborative Filtering as the underlying mechanism for making recommendations. Comparing with traditional Collaborative Filtering algorithms, NCF adderesses problems caused by limitation of linearity. 
+[doc/NCF.png](https://github.com/cs411-su22/su22-cs411-team039-NoSQLPonies/blob/faf70ae70670588ecd90bea27ee71cc7ba019d9c/doc/NCF.png)
 
 ### 3. How would you want to further improve your application? In terms of database design and system optimization?
 * Database design: re-design our schema: 
