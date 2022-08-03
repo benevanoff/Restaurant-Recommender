@@ -32,6 +32,8 @@
         <button id="history_btn">History</button>
         <button id="password_change">Change password</button>
         <button id="logout_btn">Log out</button>
+        <button id="del_user" style="color: #970020">Delete this account</button>
+
     </div>
 <script>
 
@@ -123,6 +125,7 @@
   let history_btn = document.getElementById("history_btn");
   let preferences_btn = document.getElementById("preferences_btn");
   let password_btn = document.getElementById("password_change");
+  let del_user_btn = document.getElementById("del_user");
 
   options_btn.addEventListener("click", () => {
     document.getElementById("options_tab").style.visibility = document.getElementById("options_tab").style.visibility == "visible" ? "hidden" : "visible";
@@ -135,6 +138,10 @@
 
   password_btn.addEventListener("click", () => {
       location.href = '/update';
+  });
+
+  del_user_btn.addEventListener("click", () => {
+      location.href = '/delete'
   });
 
   document.getElementById("logout_btn").addEventListener("click", () => location.href = '/logout')

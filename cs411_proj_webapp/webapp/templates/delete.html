@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <div class="white_box">
+        <h1> Delete User Account</h1>
+        <div class="form_area">
+            <form method="post">
+                <label for="username">Username</label>
+                <br>
+                <input type="text" name="username"
+                       placeholder="my_username"
+                       value="{{ request.form['username'] }}"></input>
+                <br>
 
-    <h1>{% block title %} Delete User {% endblock %}</h1>
-    <div class="form_area">
-        <form method="post">
-            <label for="username">Username</label>
-            <br>
-            <input type="text" name="username"
-                   placeholder="my_username"
-                   value="{{ request.form['username'] }}"></input>
-            <br>
+                <label for="password">Password</label>
+                <br>
+                <input type="text" name="password"
+                       placeholder="my_password"
+                       value="{{ request.form['password'] }}"></input>
+                <br>
 
-            <label for="password">Password</label>
-            <br>
-            <input type="text" name="password"
-                   placeholder="my_password"
-                   value="{{ request.form['password'] }}"></input>
-            <br>
-
-            <button type="submit">Submit</button>
-        </form>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
     </div>
-
 
 {% endblock %}
