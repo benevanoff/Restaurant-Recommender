@@ -2,15 +2,17 @@
 
 {% block content %}
 
-<center>
-	<h2>Search Food</h2>
+<div class="white_box">
+	<h1>Search Food</h1>
+
 	<input class="main_search" type="text" id="keyword_field">
 	<button id="submit-search">Search</button>
 
-	<div id="results-div">
+
+	<div id="results-div" class="display_results">
 
 	</div>
-</center>
+</div>
 
 <script>
 	function loadSearchResults() {

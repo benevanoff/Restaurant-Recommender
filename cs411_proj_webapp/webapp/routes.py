@@ -6,12 +6,6 @@ import json
 
 from webapp import database as db_helper
 
-@app.route('/')
-@app.route('/index')
-def index():
-    """Main page"""
-    return render_template('index.html', title='Midterm DEMO')
-
 
 @app.route("/create", methods=('GET', 'POST'))
 def create():
@@ -50,9 +44,15 @@ def login():
     return render_template('login.html')
 
 
+@app.route('/')
 @app.route("/search")
 def search():
     """where the search bar is"""
+    if not session.get("username"):
+        # if not there in the session then redirect to the login page
+        print("aha")
+        flash("Please log in or sign up first")
+        return redirect(url_for("login"))
     return render_template('search.html', username=session["username"])
 
 @app.route("/search_handler")
@@ -73,38 +73,12 @@ def search_handler():
             res["restaurant"] = json.dumps([dict(e) for e in restaurants])
         if key == "cafe":
             query = sqlalchemy.text('SELECT * FROM Cafe WHERE res_name LIKE :keyword LIMIT 10')
-            cafes_res = conn.execute(query, keyword='%'+request.args["restaurant"]+'%')
+            cafes_res = conn.execute(query, keyword='%'+request.args["cafe"]+'%')
             cafes = cafes_res.fetchall()
             res["cafe"] = json.dumps([dict(e) for e in cafes])
 
     conn.close()
     return res
-
-
-@app.route("/search_validation", methods=('GET', 'post'))
-def search_validation():
-    """
-    This search bar can be used to search for a certain records in a certain relation
-    this can be used to show the results of our operation
-    e.g.: first search to show the existence of a user "john", then perform delete, then search again
-    to show no such "john exists anymore".
-    """
-    table_info = db_helper.get_db_info()
-    if request.method == "POST":
-        table = request.form['table']
-        column = request.form['column']
-        tuple_key = request.form['tupleKey']
-
-        if table not in table_info or column not in table_info[table]:
-            flash("Use a valid table-column pair")
-            return render_template('search_validation.html', all_tables=table_info)
-
-        results = db_helper.search_table_tuple(table, column, tuple_key)
-        if len(results) == 0:
-            flash("No records found")
-        return render_template('search_validation.html', all_tables=table_info, results=results)
-
-    return render_template('search_validation.html', all_tables=table_info)
 
 
 @app.route("/update", methods=('GET', 'POST'))
@@ -154,11 +128,6 @@ def delete():
     return render_template('delete.html')
 
 
-@app.route("/query1")
-def query1():
-    return render_template('query1.html')
-
-
 @app.route("/suggest_handler")
 def suggest():
     conn = db.connect()
@@ -179,29 +148,6 @@ def suggest():
             res ["cafes"] = json.dumps([dict(e) for e in suggestions.fetchall()])
     conn.close()
     return res
-
-
-@app.route("/query2", methods = ('GET','POST'))
-def query2():
-    if request.method == 'POST':
-        conn = db.connect()
-        fields = "username, COUNT(*) AS num_order_brave "
-        table1 = "Customer C NATURAL JOIN OrderRestaurant O "
-        table2 = "Customer C NATURAL JOIN OrderCafe O "
-        subquery = "SELECT food_id FROM Customer C1 NATURAL JOIN Favorites WHERE C.username != C1.username"
-        query_search = (f"(SELECT {fields}"
-                        f"FROM {table1}"
-                        f"WHERE O.food_id IN ({subquery}) "
-                        "GROUP BY username) UNION "
-                        f"(SELECT {fields}"
-                        f"FROM {table2}"
-                        f"WHERE O.food_id IN ({subquery}) "
-                        "GROUP BY username) "
-                        "ORDER BY num_order_brave DESC "
-                        "LIMIT 15;")
-        results = conn.execute(query_search).fetchall()
-        return render_template('query2.html',results=results)
-    return render_template('query2.html')
 
 @app.route("/place_details")
 def place_details():
@@ -242,7 +188,7 @@ def food_history_insert():
         conn.close()
     if request.form["place_type"] == "restaurant":
         conn = db.connect()
-        conn.execute(f'INSERT INTO OrderCafe (username, food_id, res_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})')
+        conn.execute(f'INSERT INTO OrderRestaurant (username, food_id, res_id) VALUES ("{session["username"]}", {request.form["food_id"]}, {request.form["place_id"]})')
         conn.close()
         
     return {"status" : 200}
@@ -303,3 +249,53 @@ def insert_favorites():
         return {"status": 500}
     db.connect().execute(f'INSERT INTO Favorites (username, food_id) VALUES ("{session["username"]}", "{request.form["food_id"]}")')
     return {"status": 200}
+
+
+
+# @app.route("/query2", methods = ('GET','POST'))
+# def query2():
+#     if request.method == 'POST':
+#         conn = db.connect()
+#         fields = "username, COUNT(*) AS num_order_brave "
+#         table1 = "Customer C NATURAL JOIN OrderRestaurant O "
+#         table2 = "Customer C NATURAL JOIN OrderCafe O "
+#         subquery = "SELECT food_id FROM Customer C1 NATURAL JOIN Favorites WHERE C.username != C1.username"
+#         query_search = (f"(SELECT {fields}"
+#                         f"FROM {table1}"
+#                         f"WHERE O.food_id IN ({subquery}) "
+#                         "GROUP BY username) UNION "
+#                         f"(SELECT {fields}"
+#                         f"FROM {table2}"
+#                         f"WHERE O.food_id IN ({subquery}) "
+#                         "GROUP BY username) "
+#                         "ORDER BY num_order_brave DESC "
+#                         "LIMIT 15;")
+#         results = conn.execute(query_search).fetchall()
+#         return render_template('archived/query2.html', results=results)
+#     return render_template('archived/query2.html')
+
+
+@app.route("/search_validation", methods=('GET', 'post'))
+def search_validation():
+    """
+    This search bar can be used to search for a certain records in a certain relation
+    this can be used to show the results of our operation
+    e.g.: first search to show the existence of a user "john", then perform delete, then search again
+    to show no such "john exists anymore".
+    """
+    table_info = db_helper.get_db_info()
+    if request.method == "POST":
+        table = request.form['table']
+        column = request.form['column']
+        tuple_key = request.form['tupleKey']
+
+        if table not in table_info or column not in table_info[table]:
+            flash("Use a valid table-column pair")
+            return render_template('archived/search_validation.html', all_tables=table_info)
+
+        results = db_helper.search_table_tuple(table, column, tuple_key)
+        if len(results) == 0:
+            flash("No records found")
+        return render_template('archived/search_validation.html', all_tables=table_info, results=results)
+
+    return render_template('archived/search_validation.html', all_tables=table_info)
