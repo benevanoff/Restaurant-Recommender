@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<center>
-	<h2>Order History</h2>
-	{% for item in histories %}
-		<p>{{item.food_id}}</p>
-	{% endfor %}
-</center>
+    <div class="white_box">
+        <h1 style="margin: 0 0 20px 0">Order History</h1>
+        <div class="display_results">
+            {% for item in histories %}
+                <p>{{item.food_id}}</p>
+            {% endfor %}
+        </div>
+    </div>
 
 {% endblock %}
